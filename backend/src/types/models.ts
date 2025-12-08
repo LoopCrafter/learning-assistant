@@ -1,6 +1,6 @@
 import type { Document, Schema } from "mongoose";
 
-export interface Question {
+export interface IQuestion {
   question: string;
   options: string[];
   difficulty: string;
@@ -8,7 +8,7 @@ export interface Question {
   explanation?: string;
 }
 
-export interface UserAnswer {
+export interface IUserAnswer {
   questionIndex: number;
   selectedAnswer: string;
   isCorrect: boolean;
@@ -19,8 +19,8 @@ export interface IQuiz extends Document {
   userId: Schema.Types.ObjectId;
   documentId: Schema.Types.ObjectId;
   title: string;
-  questions: Question[];
-  userAnswers: UserAnswer[];
+  questions: IQuestion[];
+  userAnswers: IUserAnswer[];
   score: number;
   totalQuestions: number;
   completedAt: Date;
@@ -37,3 +37,20 @@ export interface IUser extends Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 /**  USER */
+
+/**  FLASHCARD */
+interface ICard {
+  question: string;
+  answer: string;
+  difficulty: "easy" | "medium" | "hard";
+  lastReviewdAt: Date | null;
+  reviewCount: number;
+  isStarted: boolean;
+  isCompleted: boolean;
+}
+export interface IFlashcard extends Document {
+  userId: Schema.Types.ObjectId;
+  documentId: Schema.Types.ObjectId;
+  cards: ICard[];
+}
+/**  FLASHCARD */
