@@ -54,3 +54,24 @@ export interface IFlashcard extends Document {
   cards: ICard[];
 }
 /**  FLASHCARD */
+
+/**  DOCUMENT */
+interface IChunk {
+  content: string;
+  pageNumber: number;
+  chunkIndex: number;
+}
+export interface IDocument extends Document {
+  userId: Schema.Types.ObjectId;
+  title: string;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  extractedText?: string;
+  chunks: IChunk[];
+  uploadDate: Date;
+  lastAccessedAt: Date;
+  status: string;
+}
+
+/**  DOCUMENT */
