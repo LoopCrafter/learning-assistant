@@ -1,15 +1,6 @@
 import { Schema, model, Document } from "mongoose";
 import bcrypt from "bcryptjs";
-
-export interface IUser extends Document {
-  username: string;
-  email: string;
-  password: string;
-  profileImage: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-}
+import type { IUser } from "../types/models.js";
 
 const UserSchema: Schema<IUser> = new Schema(
   {
