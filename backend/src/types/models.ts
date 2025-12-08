@@ -15,7 +15,7 @@ export interface UserAnswer {
   answeredAt: Date;
 }
 
-export interface IQuiezz extends Document {
+export interface IQuiz extends Document {
   userId: Schema.Types.ObjectId;
   documentId: Schema.Types.ObjectId;
   title: string;

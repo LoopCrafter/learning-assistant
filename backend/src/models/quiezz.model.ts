@@ -1,7 +1,7 @@
 import { Schema, model, Document } from "mongoose";
-import type { IQuiezz } from "../types/models.js";
+import type { IQuiz } from "../types/models.js";
 
-const QuiezzSchema: Schema<IQuiezz> = new Schema(
+const QuizSchema: Schema<IQuiz> = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -67,3 +67,9 @@ const QuiezzSchema: Schema<IQuiezz> = new Schema(
   },
   { timestamps: true }
 );
+
+QuizSchema.index({ userId: 1, documentId: 1 });
+
+const Quiz = model<IQuiz>("Quiz", QuizSchema);
+
+export default Quiz;
