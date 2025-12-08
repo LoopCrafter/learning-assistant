@@ -75,3 +75,20 @@ export interface IDocument extends Document {
 }
 
 /**  DOCUMENT */
+
+/* ChatHistory */
+interface IMessage {
+  role: "user" | "assistant";
+  conetnt: string;
+  timestamp: Date;
+  releveantChunks: number[];
+}
+
+export interface IChatHistory extends Document {
+  userId: Schema.Types.ObjectId;
+  documentId: Schema.Types.ObjectId;
+  messages: IMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+/* ChatHistory */
