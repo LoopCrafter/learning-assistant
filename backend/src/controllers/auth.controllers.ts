@@ -1,7 +1,7 @@
 import * as jwt from "jsonwebtoken";
 import type { NextFunction, Request, Response } from "express";
 
-import type { createUserDto } from "../dtos/auth.dto.js";
+import type { createUserDto, loginUserDto } from "../dtos/auth.dto.js";
 import User from "../models/user.model.js";
 import type { ApiResponse, UserResponseData } from "../types/response.js";
 import type { IUser } from "../types/models.js";
@@ -48,8 +48,49 @@ const register = async (
 // @desc : Login user
 // @route : POST /api/auth/login
 // @access : Public
-const login = async (req: Request, res: Response, next: NextFunction) => {
+const login = async (
+  req: Request<{}, {}, loginUserDto>,
+  res: Response<ApiResponse<UserResponseData>>,
+  next: NextFunction
+) => {
   try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and password",
+      });
+    }
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+    const isMatch = await user.comparePassword(password);
+
+    console.log("hamed", isMatch);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+    generateToken(user._id.toString(), res);
+    return res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      data: {
+        id: user._id.toString(),
+        email: user.email,
+        username: user.username,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -58,8 +99,31 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 // @desc : Get user profile
 // @route : GET /api/auth/profile
 // @access : Private
-const getProfile = async (req: Request, res: Response, next: NextFunction) => {
+const getProfile = async (
+  req: Request,
+  res: Response<ApiResponse<UserResponseData>>,
+  next: NextFunction
+) => {
   try {
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "User profile fetched successfully",
+      data: {
+        id: user._id.toString(),
+        email: user.email,
+        username: user.username,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -74,6 +138,31 @@ const updateProfile = async (
   next: NextFunction
 ) => {
   try {
+    const { username, email, password, profileImage } = req.body;
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (password) user.password = password;
+    if (profileImage) user.profileImage = profileImage;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: "User profile updated successfully",
+      data: {
+        id: user._id.toString(),
+        email: user.email,
+        username: user.username,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -88,6 +177,33 @@ const changePassword = async (
   next: NextFunction
 ) => {
   try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide current and new password",
+      });
+    }
+    const user = await User.findById(req.user?._id).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+    user.password = newPassword;
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
   } catch (error) {
     next(error);
   }

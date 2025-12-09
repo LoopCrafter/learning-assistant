@@ -8,6 +8,7 @@ import {
   updateProfile,
 } from "../controllers/auth.controllers.js";
 import { validate } from "../middleware/validate.middleware.js";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -23,10 +24,7 @@ const registerValidation = [
 ];
 
 const loginValidation = [
-  body("email")
-    .isEmail()
-    .normalizeEmail()
-    .withMessage("please provide a valid email address"),
+  body("email").isEmail().withMessage("please provide a valid email address"),
   body("password").notEmpty().withMessage("Password cannot be empty"),
 ];
 
@@ -34,8 +32,8 @@ router.post("/register", registerValidation, validate, register);
 router.post("/login", loginValidation, validate, login);
 
 //protected Routes
-// router.get("/profile",protected , getProfile);
-// router.put("/profile", protected, updateProfile);
-// router.post("/change-password", protected, changePassword);
+router.get("/profile", protectRoute, getProfile);
+router.put("/profile", protectRoute, updateProfile);
+router.post("/change-password", protectRoute, changePassword);
 
 export default router;

@@ -6,7 +6,7 @@ export const generateToken = (userId: string, res: Response) => {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET!, {
     expiresIn: (process.env.JWT_EXPIRES_IN ?? "7d") as StringValue,
   });
-  res.cookie("accessToekn", token, {
+  res.cookie("accessToken", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
