@@ -71,7 +71,6 @@ const login = async (
     }
     const isMatch = await user.comparePassword(password);
 
-    console.log("hamed", isMatch);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -199,6 +198,12 @@ const changePassword = async (
       });
     }
     user.password = newPassword;
+    res.cookie("accessToken", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      expires: new Date(0),
+    });
     await user.save();
     res.status(200).json({
       success: true,
@@ -209,4 +214,17 @@ const changePassword = async (
   }
 };
 
-export { register, login, getProfile, updateProfile, changePassword };
+const logout = (req: Request, res: Response) => {
+  res.cookie("accessToken", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    expires: new Date(0),
+  });
+  res.status(200).json({
+    success: true,
+    message: "User logged out successfully",
+  });
+};
+
+export { register, login, getProfile, updateProfile, changePassword, logout };

@@ -4,6 +4,7 @@ import {
   changePassword,
   getProfile,
   login,
+  logout,
   register,
   updateProfile,
 } from "../controllers/auth.controllers.js";
@@ -34,6 +35,20 @@ router.post("/login", loginValidation, validate, login);
 //protected Routes
 router.get("/profile", protectRoute, getProfile);
 router.put("/profile", protectRoute, updateProfile);
-router.post("/change-password", protectRoute, changePassword);
+router.post(
+  "/change-password",
+  protectRoute,
+  [
+    body("currentPassword")
+      .notEmpty()
+      .withMessage("Current password cannot be empty"),
+    body("newPassword")
+      .isLength({ min: 6 })
+      .withMessage("New password must be at least 6 characters long"),
+  ],
+  validate,
+  changePassword
+);
+router.post("/logout", protectRoute, logout);
 
 export default router;
