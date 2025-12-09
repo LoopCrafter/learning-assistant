@@ -33,16 +33,19 @@ const UserSchema: Schema<IUser> = new Schema(
   { timestamps: true }
 );
 
-UserSchema.pre("save", async function (next: any) {
+UserSchema.pre("save", async function () {
+  // next رو حذف کن
   if (!this.isModified("password")) {
-    return next();
+    return; // early return بدون next()
   }
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
+    // next() رو حذف کن—Mongoose منتظر resolve می‌مونه
   } catch (err) {
-    next(err);
+    console.error("Password hashing error:", err); // "hamed" رو به error تغییر دادم برای بهتر بودن
+    throw err; // throw کن به جای next(err)—Mongoose handle می‌کنه
   }
 });
 

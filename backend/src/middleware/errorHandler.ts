@@ -1,10 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
-import type { ApiResponss } from "../types/response.js";
+import type { ApiResponse } from "../types/response.js";
 
 const errorHandler = (
   err: any,
   req: Request,
-  res: Response<ApiResponss<null>>,
+  res: Response<ApiResponse<null>>,
   next: NextFunction
 ) => {
   console.log("🔥 Error Handler Triggered");

@@ -7,6 +7,7 @@ import {
   register,
   updateProfile,
 } from "../controllers/auth.controllers.js";
+import { validate } from "../middleware/validate.middleware.js";
 
 const router = Router();
 
@@ -29,8 +30,8 @@ const loginValidation = [
   body("password").notEmpty().withMessage("Password cannot be empty"),
 ];
 
-router.post("/register", registerValidation, register);
-router.post("/login", loginValidation, login);
+router.post("/register", registerValidation, validate, register);
+router.post("/login", loginValidation, validate, login);
 
 //protected Routes
 // router.get("/profile",protected , getProfile);
