@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "build": "tsc --build",
     "start": "node ./dist/server.js",
@@ -16,6 +16,7 @@
   "type": "module",
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "@trpc/server": "^11.7.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
