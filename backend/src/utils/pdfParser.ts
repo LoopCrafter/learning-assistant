@@ -1,24 +1,33 @@
 import fs from "fs/promises";
 import { PDFParse } from "pdf-parse";
 
-type Parser = {
-  numpages: number;
-  numrender: number;
-  info: object;
-  metadata: object;
+type TextResult = {
   text: string;
-  version: string;
 };
 
-export const extractTextFromPdf = async (filePath: string): Promise<string> => {
+type InfoResult = {
+  total: number;
+  info?: object;
+  pages?: Array<object>;
+};
+
+export const extractTextFromPdf = async (
+  filePath: string
+): Promise<{
+  text: string;
+  numPages: number;
+  info?: object;
+}> => {
   try {
     const dataBuffer = await fs.readFile(filePath);
-    const parser = new PDFParse(new Uint8Array(dataBuffer));
-    const data: Parser = await parser.getText();
+    const parser = new PDFParse({ data: dataBuffer });
+    const textResult: TextResult = await parser.getText();
+    const infoResult: InfoResult = await parser.getInfo();
+
     return {
-      text: data.text,
-      numPages: data.numpages,
-      info: data.info,
+      text: textResult.text,
+      numPages: infoResult.total,
+      info: infoResult.info ?? {},
     };
   } catch (error) {
     console.log(`Error reading PDF file: ${error}`);
