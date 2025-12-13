@@ -5,6 +5,7 @@ import type { ApiResponse } from "../types/response.js";
 import Document from "../models/document.model.js";
 import type { IDocument } from "../types/models.js";
 import { processPDF } from "../utils/index.js";
+import { extractTextFromPdf } from "../utils/pdfParser.js";
 
 // @desc Upload PDF document
 // @route POST /api/documents
@@ -30,7 +31,7 @@ const uploadDocument = async (
         message: "please provide a document title",
       });
     }
-    const fileUrl = `${process.env.BASE_URL}/uploades/documents/${req.file.filename}`;
+    const fileUrl = `${process.env.BASE_URL}/uploads/documents/${req.file.filename}`;
 
     const document = await Document.create({
       userId: req.user!._id,
@@ -64,10 +65,54 @@ const uploadDocument = async (
 // @access Private
 const getDocuments = async (
   req: Request,
-  res: Response,
+  res: Response<ApiResponse<IDocument[]>>,
   next: NextFunction
 ) => {
   try {
+    const documents = await Document.aggregate([
+      {
+        $match: { userId: req.user!._id },
+      },
+      {
+        $lookup: {
+          from: "flashcards",
+          localField: "_id",
+          foreignField: "documentId",
+          as: "flashcardSets",
+        },
+      },
+      {
+        $lookup: {
+          from: "quizzes",
+          localField: "_id",
+          foreignField: "documentId",
+          as: "quizzes",
+        },
+      },
+      {
+        $addFields: {
+          flashcardCount: { $size: "$flashcardSets" },
+          quizCount: { $size: "$quizzes" },
+        },
+      },
+      {
+        $project: {
+          flashcardSets: 0,
+          quizzes: 0,
+          chunks: 0,
+          extractText: 0,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
+    return res.status(200).json({
+      success: true,
+      message: "documents fetched successfully",
+      data: documents,
+      count: documents.length,
+    });
   } catch (error) {
     next(error);
   }

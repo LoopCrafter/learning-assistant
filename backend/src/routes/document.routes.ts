@@ -6,13 +6,15 @@ import {
   updateDocument,
   uploadDocument,
 } from "../controllers/document.controllers.js";
+import upload from "../configs/multer.js";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.post("/upload", uploadDocument);
-router.get("/", getDocuments);
-router.get("/:id", getDocumentById);
-router.delete("/:id", deleteDocument);
-router.put("/:id", updateDocument);
+router.post("/upload", upload.single("file"), protectRoute, uploadDocument);
+router.get("/", protectRoute, getDocuments);
+router.get("/:id", protectRoute, getDocumentById);
+router.delete("/:id", protectRoute, deleteDocument);
+router.put("/:id", protectRoute, updateDocument);
 
 export default router;
