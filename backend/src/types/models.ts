@@ -1,3 +1,4 @@
+import type { Types } from "mongoose";
 import type { Document, Schema } from "mongoose";
 
 export interface IQuestion {
@@ -16,8 +17,8 @@ export interface IUserAnswer {
 }
 
 export interface IQuiz extends Document {
-  userId: Schema.Types.ObjectId;
-  documentId: Schema.Types.ObjectId;
+  userId: Types.ObjectId;
+  documentId: Types.ObjectId;
   title: string;
   questions: IQuestion[];
   userAnswers: IUserAnswer[];
@@ -34,6 +35,7 @@ export interface IUser extends Document {
   profileImage: string | null;
   createdAt: Date;
   updatedAt: Date;
+  _id: Types.ObjectId;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 /**  USER */
@@ -49,8 +51,8 @@ interface ICard {
   isCompleted: boolean;
 }
 export interface IFlashcard extends Document {
-  userId: Schema.Types.ObjectId;
-  documentId: Schema.Types.ObjectId;
+  userId: Types.ObjectId;
+  documentId: Types.ObjectId;
   cards: ICard[];
 }
 /**  FLASHCARD */
@@ -61,8 +63,8 @@ interface IChunk {
   pageNumber: number;
   chunkIndex: number;
 }
-export interface IDocument extends Document {
-  userId: Schema.Types.ObjectId;
+export interface IDocument {
+  userId: Types.ObjectId;
   title: string;
   fileName: string;
   filePath: string;
@@ -85,8 +87,8 @@ interface IMessage {
 }
 
 export interface IChatHistory extends Document {
-  userId: Schema.Types.ObjectId;
-  documentId: Schema.Types.ObjectId;
+  userId: Types.ObjectId;
+  documentId: Types.ObjectId;
   messages: IMessage[];
   createdAt: Date;
   updatedAt: Date;
