@@ -6,12 +6,13 @@ import {
   revuiewFlashcard,
   toggleStarFlashcard,
 } from "../controllers/flashcard.controllers.js";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = Router();
-router.get("/", getAllFlashcardSets);
-router.get("/:documentId", getFlashcards);
-router.get("/:cardId/review", revuiewFlashcard);
-router.put("/:cardId/start", toggleStarFlashcard);
-router.delete("/:id", deleteFlashcardSets);
+router.get("/", protectRoute, getAllFlashcardSets);
+router.get("/:documentId", protectRoute, getFlashcards);
+router.get("/:cardId/review", protectRoute, revuiewFlashcard);
+router.put("/:cardId/start", protectRoute, toggleStarFlashcard);
+router.delete("/:id", protectRoute, deleteFlashcardSets);
 
 export default router;

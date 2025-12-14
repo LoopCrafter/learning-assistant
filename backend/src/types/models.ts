@@ -49,8 +49,9 @@ interface ICard {
   reviewCount: number;
   isStarted: boolean;
   isCompleted: boolean;
+  _id?: Types.ObjectId;
 }
-export interface IFlashcard extends Document {
+export interface IFlashcard {
   userId: Types.ObjectId;
   documentId: Types.ObjectId;
   cards: ICard[];

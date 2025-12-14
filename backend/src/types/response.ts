@@ -1,5 +1,5 @@
 import { Types, type ObjectId } from "mongoose";
-import type { IDocument, IUser } from "./models.js";
+import type { IDocument, IFlashcard, IUser } from "./models.js";
 
 export type ApiResponse<T> = {
   success: boolean;
@@ -23,3 +23,12 @@ export type DocumentResponseData = IDocument &
     flashcardCount: number;
     quizCount: number;
   };
+
+export type FlashcardResponse = Omit<IFlashcard, "documentId"> & {
+  _id: string;
+  documentId: {
+    _id: string;
+    title: string;
+    name: string;
+  };
+};
