@@ -24,7 +24,7 @@ const FlashcardSchema: Schema<IFlashcard> = new Schema(
         },
         lastReviewdAt: { type: Date, default: null },
         reviewCount: { type: Number, default: 0 },
-        isStarted: { type: Boolean, default: false },
+        isStarred: { type: Boolean, default: false },
         isCompleted: { type: Boolean, default: false },
       },
     ],

@@ -47,7 +47,7 @@ interface ICard {
   difficulty: "easy" | "medium" | "hard";
   lastReviewdAt: Date | null;
   reviewCount: number;
-  isStarted: boolean;
+  isStarred: boolean;
   isCompleted: boolean;
   _id?: Types.ObjectId;
 }

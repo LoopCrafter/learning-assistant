@@ -105,15 +105,54 @@ const revuiewFlashcard = async (
   }
 };
 
-// @desc Toggle star on a flashcard
+// @desc Toggle star/favorit on a flashcard
 // @route PUT /api/flashcards/:cardId/star
 // @access Private
 const toggleStarFlashcard = async (
-  req: Request,
+  req: Request<{ cardId: string }>,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const { cardId } = req.params;
+    const userId = req.user!._id;
+    const flashcardSet = await Flashcard.findOne({
+      "cards._id": cardId,
+      userId,
+    });
+
+    if (!flashcardSet) {
+      return res.status(404).json({
+        success: false,
+        message: "Flashcard not found",
+      });
+    }
+
+    const cardIndex = flashcardSet.cards.findIndex(
+      (card) => card._id?.toString() === cardId
+    );
+
+    if (cardIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Card not found in the flashcard set",
+      });
+    }
+
+    const card = flashcardSet.cards[cardIndex];
+
+    if (card) {
+      card.isStarred = !card.isStarred;
+    }
+
+    await flashcardSet.save();
+    return res.status(200).json({
+      success: true,
+      data: flashcardSet,
+      message: `Flashcard ${
+        card?.isStarred ? "starred" : "unstarred"
+      } successfully`,
+    });
   } catch (error) {
     next(error);
   }
@@ -123,11 +162,29 @@ const toggleStarFlashcard = async (
 // @route DELETE /api/flashcards/:id
 // @access Private
 const deleteFlashcardSets = async (
-  req: Request,
+  req: Request<{ id: string }>,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const { id } = req.params;
+    const userId = req.user!._id;
+    const flashcardSet = await Flashcard.findOneAndDelete({
+      _id: id,
+      userId,
+    });
+
+    if (!flashcardSet) {
+      return res.status(404).json({
+        success: false,
+        message: "Flashcard set not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Flashcard set deleted successfully",
+    });
   } catch (error) {
     next(error);
   }
