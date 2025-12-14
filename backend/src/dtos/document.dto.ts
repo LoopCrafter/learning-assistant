@@ -6,7 +6,3 @@ export interface uploadDocumentDto {
   tags?: string[];
   file: File;
 }
-
-export interface getDocumentByIdDto {
-  id: string;
-}

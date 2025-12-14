@@ -1,14 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import fs from "fs/promises";
-import type {
-  getDocumentByIdDto,
-  uploadDocumentDto,
-} from "../dtos/document.dto.js";
+import type { uploadDocumentDto } from "../dtos/document.dto.js";
 import type { ApiResponse, DocumentResponseData } from "../types/response.js";
 import Document from "../models/document.model.js";
 import type { IDocument } from "../types/models.js";
 import { processPDF } from "../utils/index.js";
-import { extractTextFromPdf } from "../utils/pdfParser.js";
 import Flashcard from "../models/flashcard.model.js";
 import Quiz from "../models/quiezz.model.js";
 
@@ -127,7 +123,7 @@ const getDocuments = async (
 // @route GET /api/documents/:id
 // @access Private
 const getDocumentById = async (
-  req: Request<getDocumentByIdDto>,
+  req: Request<{ id: string }>,
   res: Response<ApiResponse<DocumentResponseData>>,
   next: NextFunction
 ) => {
@@ -173,34 +169,31 @@ const getDocumentById = async (
 // @route DELETE /api/documents/:id
 // @access Private
 const deleteDocument = async (
-  req: Request,
+  req: Request<{ id: string }>,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const { id } = req.params;
+
+    const document = await Document.findOneAndDelete({
+      _id: id,
+      userId: req.user!._id,
+    });
+    if (!document) {
+      return res.status(404).json({
+        success: false,
+        message: "document not found",
+      });
+    }
+    await fs.unlink(document.filePath).catch(() => {});
+    return res.status(200).json({
+      success: true,
+      message: "document deleted successfully",
+    });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc Update document
-// @route PUT /api/documents/:id
-// @access Private
-const updateDocument = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-  } catch (error) {
-    next(error);
-  }
-};
-
-export {
-  uploadDocument,
-  getDocuments,
-  getDocumentById,
-  deleteDocument,
-  updateDocument,
-};
+export { uploadDocument, getDocuments, getDocumentById, deleteDocument };
