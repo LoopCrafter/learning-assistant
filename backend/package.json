@@ -16,6 +16,7 @@
   "type": "module",
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "@openrouter/sdk": "^0.2.11",
     "@trpc/server": "^11.7.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
