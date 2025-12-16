@@ -1,14 +1,56 @@
 import type { NextFunction, Request, Response } from "express";
+import Document from "../models/document.model.js";
+import { aiServices, extractedText } from "../utils/geminiService.js";
+import Flashcard from "../models/flashcard.model.js";
 
 // @desc Generate flashcards from a document
 // @route POST /api/ai/generate-flashcards
 // @access Private
 const generateFlashcards = async (
-  req: Request,
+  req: Request<{}, {}, { documentId: string; count?: number }>,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const { documentId, count = 10 } = req.body;
+    if (!documentId) {
+      return res
+        .status(400)
+        .json({ message: "Document ID is required", success: false });
+    }
+    const document = await Document.findOne({
+      _id: documentId,
+      userId: req.user!._id,
+      status: "ready",
+    });
+
+    if (!document) {
+      return res
+        .status(404)
+        .json({ message: "Document not found or not ready", success: false });
+    }
+    //generate Flashcards using AI service
+    const cards = await aiServices.generateFlashcards(
+      document.extractedText ?? "",
+      parseInt(count.toString(), 10)
+    );
+
+    const flashcardSets = await Flashcard.create({
+      userId: req.user!._id,
+      documentId: document._id,
+      cards: cards.map((card) => ({
+        question: card.question,
+        answer: card.answer,
+        difficulty: card.difficulty,
+        reviewCount: 0,
+        isStarred: false,
+      })),
+    });
+    return res.status(200).json({
+      message: "Flashcards generated successfully",
+      success: true,
+      data: flashcardSets,
+    });
   } catch (error) {
     next(error);
   }
