@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import Document from "../models/document.model.js";
 import { aiServices } from "../utils/geminiService.js";
 import Flashcard from "../models/flashcard.model.js";
+import Quiz from "../models/quiezz.model.js";
 
 // @desc Generate flashcards from a document
 // @route POST /api/ai/generate-flashcards
@@ -65,7 +66,7 @@ const generateQuiz = async (
   next: NextFunction
 ) => {
   try {
-    const { documentId, numOfQuestions = 5 } = req.body;
+    const { documentId, numOfQuestions = 5, title } = req.body;
     if (!documentId) {
       return res.status(400).json({
         message: "Document ID is required",
@@ -83,10 +84,18 @@ const generateQuiz = async (
         success: false,
       });
     }
-    const quiz = await aiServices.generateQuizFromText(
+    const questions = await aiServices.generateQuizFromText(
       document.extractedText ?? "",
       parseInt(numOfQuestions.toString(), 10)
     );
+    const quiz = await Quiz.create({
+      userId: req.user!._id,
+      documentId: document._id,
+      questions,
+      title: title || `${document.title} - Quiz` || "Untitled Quiz",
+      totalQuestions: questions.length,
+      score: 0,
+    });
     return res.status(200).json({
       message: "Quiz generated successfully",
       success: true,
