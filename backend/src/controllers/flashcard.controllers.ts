@@ -59,7 +59,7 @@ const getFlashcards = async (
 // @desc Review a flashcard
 // @route GET /api/flashcards/:cardId/review
 // @access Private
-const revuiewFlashcard = async (
+const reviewFlashcard = async (
   req: Request<{ cardId: string }>,
   res: Response<ApiResponse<IFlashcard>>,
   next: NextFunction
@@ -193,7 +193,7 @@ const deleteFlashcardSets = async (
 export {
   getAllFlashcardSets,
   getFlashcards,
-  revuiewFlashcard,
+  reviewFlashcard,
   toggleStarFlashcard,
   deleteFlashcardSets,
 };
