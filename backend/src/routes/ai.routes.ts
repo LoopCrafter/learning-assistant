@@ -8,12 +8,45 @@ import {
   generateSummary,
   getChatHistory,
 } from "../controllers/ai.controllers.js";
+import { body } from "express-validator";
+import { validate } from "../middleware/validate.middleware.js";
 
 const router = Router();
 router.use(protectRoute);
 
-router.post("/generate-flashcards", generateFlashcards);
-router.post("/generate-quiz", generateQuiz);
+router.post(
+  "/generate-flashcards",
+  [
+    body("documentId")
+      .notEmpty()
+      .withMessage("Document ID is required")
+      .isMongoId()
+      .withMessage("Invalid Document ID"),
+    body("count")
+      .optional()
+      .isInt({ min: 1, max: 10 })
+      .withMessage("Count must be between 1 and 10"),
+  ],
+  validate,
+  generateFlashcards
+);
+router.post(
+  "/generate-quiz",
+  [
+    body("documentId")
+      .notEmpty()
+      .withMessage("Document ID is required")
+      .isMongoId()
+      .withMessage("Invalid Document ID"),
+    body("numOfQuestions")
+      .optional()
+      .default(5)
+      .isInt({ min: 1, max: 10 })
+      .withMessage("Number of questions must be between 1 and 10"),
+  ],
+  validate,
+  generateQuiz
+);
 router.post("/generate-summary", generateSummary);
 router.post("/chat", chat);
 router.post("/explain-concept", explainConcept);

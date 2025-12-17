@@ -4,6 +4,9 @@ const openrouter = new OpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY || "",
 });
 
+// const aiModel = "google/gemini-2.0-flash-exp:free";
+const aiModel = "nvidia/nemotron-3-nano-30b-a3b:free";
+
 if (!process.env.OPENROUTER_API_KEY) {
   console.warn("OPENROUTER_API_KEY is not set. Gemini service will not work.");
   process.exit(1);
@@ -14,6 +17,14 @@ interface Flashcard {
   answer: string;
   difficulty: "easy" | "medium" | "hard";
 }
+
+interface QuizItem {
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+}
+
 const generateFlashcards = async (
   text: string,
   count = 10
@@ -38,7 +49,7 @@ const generateFlashcards = async (
     Text: ${text.substring(0, 1500)}`;
   try {
     const response = await openrouter.chat.send({
-      model: "nvidia/nemotron-3-nano-30b-a3b:free",
+      model: aiModel,
       messages: [
         {
           role: "user",
@@ -87,30 +98,35 @@ const generateFlashcards = async (
 const generateQuizFromText = async (
   text: string,
   numOfQuestions = 5
-): Promise<string> => {
-  const prompt = `You are a skilled educator tasked with creating a multiple-choice quiz to assess comprehension of the following text. Generate exactly ${numOfQuestions} questions that cover key concepts, facts, definitions, processes, and relationships from the text. Ensure questions are varied (e.g., factual recall, application, inference) and directly derived from the text. Avoid redundancy.
+): Promise<QuizItem[]> => {
+  if (!text || text.trim().length === 0) {
+    return [];
+  }
+  const prompt = `You are a skilled educator tasked with creating a multiple-choice quiz to assess comprehension of the following text. Generate EXACTLY ${numOfQuestions} questions that cover key concepts, facts, definitions, processes, and relationships from the text. Ensure questions are varied (e.g., factual recall, application, inference) and directly derived from the text. Avoid redundancy.
+      For each question:
+      - Make the correct answer accurate and based on the text.
+      - Create 3 plausible distractors (wrong options) that are similar but incorrect.
+      - Keep questions and options concise (under 20 words each).
 
-    For each question:
-    - Make the correct answer accurate and based on the text.
-    - Create 3 plausible distractors (wrong options) that are similar but incorrect.
-    - Keep questions and options concise (under 20 words each).
-    
-    Format each question exactly as:
-    Q: [Clear, engaging question]
-    O1: [Option 1]
-    O2: [Option 2]
-    O3: [Option 3]
-    O4: [Option 4]
-    C: [Correct option letter: O1, O2, O3, or O4 - exactly as above]
-    E: [Brief explanation (1-2 sentences) why this is correct, referencing the text]
-    
-    Separate each question with "========".
-    
-    Text: ${text.substring(0, 1500)}`;
+      Output ONLY a valid JSON object, no extra text or formatting:
+      {
+        "data": [
+          {
+            "question": "Clear, engaging question",
+            "options": ["Option 1", "Option 2", "Option 3", "Option 4"],  // array of 4 strings
+            "correct": "",  //  correct option (value of correct answer in string)
+            "explanation": "Brief explanation (1-2 sentences) why this is correct, referencing the text"
+          }
+          // ... EXACTLY ${numOfQuestions} items, no more/less
+        ],
+        "success": true
+      }
+
+      Text: ${text.substring(0, 1500)}`;
 
   try {
     const response = await openrouter.chat.send({
-      model: "google/gemini-2.0-flash-exp:free",
+      model: aiModel,
       messages: [
         {
           role: "user",
@@ -119,29 +135,50 @@ const generateQuizFromText = async (
       ],
       stream: false,
     });
-
-    let fullContent: string = "No quiz generated.";
-
     const content = response.choices[0]?.message?.content;
-    if (typeof content === "string") {
-      fullContent = content;
-    } else if (Array.isArray(content)) {
-      fullContent = content
-        .filter(
-          (item): item is { type: "text"; text: string } => item.type === "text"
-        )
-        .map((item) => (item as { type: "text"; text: string }).text)
-        .join("\n");
-
-      if (fullContent.trim() === "") {
-        fullContent = "No text content found in response.";
-      }
+    if (typeof content !== "string" || content.trim() === "") {
+      return [];
+    }
+    let parsed: { data: QuizItem[]; success: boolean };
+    try {
+      parsed = JSON.parse(content.trim());
+    } catch (parseError) {
+      console.error("JSON Parse Error:", parseError);
+      console.log("Content preview:", content.substring(0, 500));
+      return [];
     }
 
-    return fullContent;
+    if (
+      !parsed.data ||
+      !Array.isArray(parsed.data) ||
+      parsed.data.length === 0
+    ) {
+      console.warn("Invalid or empty data array.");
+      return [];
+    }
+
+    const quizzes: QuizItem[] = parsed.data
+      .filter(
+        (item: QuizItem) =>
+          typeof item.question === "string" &&
+          Array.isArray(item.options) &&
+          item.options.length === 4 &&
+          item.options.every((opt) => typeof opt === "string") &&
+          typeof item.explanation === "string" &&
+          item.question.trim() !== "" &&
+          item.explanation.trim() !== ""
+      )
+      .slice(0, numOfQuestions);
+
+    if (quizzes.length === 0) {
+      console.warn("No valid quizzes after filter.");
+      return [];
+    }
+
+    return quizzes;
   } catch (error) {
     console.error("Error generating quiz:", error);
-    return "An error occurred while generating the quiz. Please check your API key and try again.";
+    return [];
   }
 };
 
@@ -378,74 +415,3 @@ export const aiServices = {
   chatWithContext,
   explainConcept,
 };
-
-export const extractedText = `HAMED OSTOVAR
-Senior Software Engineer (Front-End Focus)
-Summary
-Senior Full-Stack Engineer with 9+ years of experience and a strong front-end focus, specializing in
-React, Next.js, and TypeScript. Solid MERN stack background with hands-on backend capabilities.
-Experienced in building scalable, high-performance UI solutions that elevate product quality and user
-experience.
-Skills
-Technologies: JavaScript, TypeScript, React.js, Next.js, Vue.js, React Native, Apollo Client, GraphQL, Storybook, HTML5,
-CSS3, Sass/SCSS, Less, Vite, GitHub, GitHub Actions, Docker, CI/CD, PWA, Backbone.js, GSAP Animation.
-Testing: Unit & integration testing (Jest, React Testing Library), E2E testing (Cypress), A/B testing.
-UI Frameworks: Tailwind CSS, Styled Components, MUI, Ant Design (Antd)
-State Management: Redux (Thunk, Saga), Redux Toolkit, Context API, React Query, Zustand
-Backend: Strong experience with Node.js and Express, including REST API development, authentication, middleware,
-real-time communication using WebSocket and Socket.IO, and database integrations (MongoDB).
-Familiar with Python for scripting and backend tasks.
-Professional Experience
-Senior Front-End Engineer, Mindbreeze 2024 June – current / Linz, Austria / Full Time – onsite
-Developing AI-assisted enterprise search solutions to enhance data accessibility and support smarter decision-
-making through advanced search capabilities and intuitive, high-performance user interfaces.
-• UI Development: Created responsive UIs with React.js and TypeScript for improved user experience.
-• API Integration: Integrated Mindbreeze InSpire with data sources via APIs for seamless data access.
-• Performance Optimization: Reduced page load times using Next.js for better app performance.
-• CI/CD Setup: Streamlined deployment using Docker and GitHub Actions for efficient release management.
-Senior Front-End Engineer, SoftConstruct 2022 January – 2024 June (2 years and 6 months) / Yerevan, Armenia / Full Time – onsite
-At SoftConstruct, a key player in the gaming industry and home to BetConstruct, an award-winning global
-gaming solutions provider, my contributions include:
-• Leading development projects using technologies like JavaScript, ReactJS, NextJS, TypeScript,
-Redux, and WebSockets in an Agile environment (Scrum methodology).
-• Designing, developing, testing, and deploying user-centric features efficiently and on schedule.
-Linz, Austria
-https://github.com/loop
-crafter
-https://www.linkedin.com/in/hamed-ostovar
-+4368181938132
-ostovari.eng@gmail.com
-
-• Prioritizing user experience in design choices to enhance interface intuitiveness and
-functionality.
-Senior Front-End Developer, StageTry 2018 July– 2022 January (3 year and 7 months) / Ontario, Canada / Full Time – Remote
-At StageTry, a company revolutionizing online retail with "Try Before You Buy" solutions that minimize returns
-and boost revenue and customer loyalty, my key achievements included:
-• Expertly employing JavaScript, ReactJS, NextJS, TypeScript, Redux, and Tailwind CSS in an Agile
-(Scrum) environment to develop and implement a dynamic sitemap solution. This innovation
-effectively addressed SEO challenges associated with the marketplace's vast data volume.
-• Significantly enhancing the marketplace's efficiency, speed, and user functionality by integrating
-advanced technologies.
-• Pioneering the development of the “Try Before You Buy” feature for the marketplace, which
-was instrumental in achieving a 20% increase in company revenue.
-Front-End Developer, SilverAge 2015 July – 2018 April (2 years and 10 months) / Mashhad, Iran / Full Time - onsite
-SilverAge, a dynamic digital agency known for implementing versatile web applications across various
-industries (services, banking, finance, etc.), was the setting for my role, where I:
-• Skillfully applied JavaScript, ReactJS, NextJS, TypeScript, Tailwind CSS, Redux, and PWA in Agile
-(Scrum) environments to successfully deliver multiple large-scale e-commerce projects. This
-involved adapting to diverse industry requirements and ensuring high-quality, scalable
-solutions.
-• Innovatively designed and developed custom client dashboards, resulting in a 50% reduction in
-support tickets.
-• Played a critical role in daily code maintenance, efficiently debugging issues, and swiftly
-resolving technical problems faced by clients, ensuring the seamless functionality of our web
-solutions.
-Languages
-• English (Professional working proficiency)
-• Persian (Native or bilingual proficiency)
-• German – Basic proficiency (Level A1 completed, continuing studies)
-Education
-Bachelor of Information Technology, Shahrood University of Technology (Sep 2010 – Jul 2014)
-
-
-`;
