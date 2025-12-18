@@ -79,6 +79,11 @@ const errorHandler = (
   else {
     message = err.message || message;
   }
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+  });
 };
 
 export default errorHandler;
