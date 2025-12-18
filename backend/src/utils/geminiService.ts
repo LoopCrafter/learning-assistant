@@ -68,7 +68,6 @@ const generateFlashcards = async (
       parsed = JSON.parse(content.trim());
     } catch (parseError) {
       console.error("JSON Parse Error:", parseError);
-      console.log("Content preview:", content.substring(0, 500));
       return [];
     }
 
@@ -146,7 +145,6 @@ const generateQuizFromText = async (
       parsed = JSON.parse(content.trim());
     } catch (parseError) {
       console.error("JSON Parse Error:", parseError);
-      console.log("Content preview:", content.substring(0, 500));
       return [];
     }
 
@@ -252,7 +250,7 @@ Text: ${truncatedText}`;
 const chatWithContext = async (
   question: string,
   chunks: { content: string }[]
-): Promise<string> => {
+): Promise<string | null> => {
   if (!question || question.trim().length === 0) {
     return "Please provide a valid question.";
   }
@@ -273,62 +271,56 @@ const chatWithContext = async (
     );
   }
 
-  console.log("Context for chat:", context);
-  const prompt = `You are an expert knowledge assistant specialized in retrieving and synthesizing information from document chunks. Your goal is to answer the user's question accurately, concisely, and directly based ONLY on the provided context chunks below. Do NOT use external knowledge, hallucinate, or add unsubstantiated details—stick to what's in the chunks. If the question can't be fully answered from the context, say so clearly and suggest what additional info might help.
-        Key guidelines:
-        - Keep responses under 300 words; be clear and structured (use bullets if listing points).
-        - If relevant, structure as: Answer + Evidence (with chunk refs) + Limitations (if any).
+  const prompt = `You are an expert knowledge assistant specialized in retrieving and synthesizing information from document chunks. Your goal is to answer the user's question accurately, concisely, and directly based ONLY on the provided context chunks below. Do NOT use external knowledge, hallucinate, or add unsubstantiated details—stick to what's in the chunks. If the question can't be fully answered, say so clearly and suggest what additional info might help.
 
-        Context:
-        ${context}
+Key guidelines:
+- Keep responses under 150 words; be concise and focused (use bullets for key points).
+- Start directly with the answer—no titles or prefixes.
+- Reference chunks briefly (e.g., "From Chunk 1...") for evidence.
 
-        Question: ${question}
+Context:
+${context}
 
-        Answer:`;
+Question: ${question}`;
 
   try {
     const response = await openrouter.chat.send({
-      model: "google/gemini-2.0-flash-exp:free",
+      model: aiModel,
       messages: [
         {
           role: "user",
           content: prompt,
         },
       ],
-      stream: false,
+      stream: true,
       temperature: 0.3,
     });
-    let fullContent: string = "No response generated.";
 
-    const content = response.choices[0]?.message?.content;
-    if (typeof content === "string") {
-      fullContent = content;
-    } else if (Array.isArray(content)) {
-      fullContent = content
-        .filter(
-          (item): item is { type: "text"; text: string } => item.type === "text"
-        )
-        .map((item) => (item as { type: "text"; text: string }).text)
-        .join("\n");
-
-      if (fullContent.trim() === "") {
-        fullContent = "No text content found in response.";
+    let fullContent = "";
+    for await (const chunk of response) {
+      const delta = chunk.choices[0]?.delta?.content;
+      if (delta) {
+        fullContent += delta;
       }
     }
 
-    if (
-      fullContent.length < 20 ||
-      !fullContent.includes(question.toLowerCase().substring(0, 10))
-    ) {
-      console.warn("Response too short or irrelevant; using fallback.");
-      fullContent =
-        "Based on the provided context, I couldn't generate a precise answer. Please refine your question or provide more chunks.";
+    fullContent = fullContent.trim();
+    if (fullContent === "") {
+      return "No response generated from stream.";
+    }
+
+    if (fullContent.length < 50) {
+      console.warn(
+        "Stream response too short; using fallback. Content:",
+        fullContent
+      );
+      return "Based on the provided context, I couldn't generate a precise answer. Please refine your question or provide more chunks.";
     }
 
     return fullContent;
   } catch (error) {
     console.error("Error during chat:", error);
-    return "An error occurred while processing your question. Please check your API key and try again.";
+    return null;
   }
 };
 

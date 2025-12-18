@@ -83,7 +83,7 @@ export interface IDocument {
 /* ChatHistory */
 interface IMessage {
   role: "user" | "assistant";
-  conetnt: string;
+  content: string;
   timestamp: Date;
   releveantChunks: number[];
 }

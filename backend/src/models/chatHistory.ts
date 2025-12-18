@@ -16,7 +16,7 @@ const ChatHistorySchema: Schema<IChatHistory> = new Schema(
     messages: [
       {
         role: { type: String, enum: ["user", "assistant"], required: true },
-        conetnt: { type: String, required: true },
+        content: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },
         releveantChunks: {
           type: [Number],

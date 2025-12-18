@@ -59,7 +59,23 @@ router.post(
   validate,
   generateSummary
 );
-router.post("/chat", chat);
+router.post(
+  "/chat",
+  [
+    body("documentId")
+      .notEmpty()
+      .withMessage("Document ID is required")
+      .isMongoId()
+      .withMessage("Invalid Document ID"),
+    body("question")
+      .notEmpty()
+      .withMessage("Question is required")
+      .isString()
+      .withMessage("Question must be a string"),
+  ],
+  validate,
+  chat
+);
 router.post("/explain-concept", explainConcept);
 router.get("/chat-history/:documentId", getChatHistory);
 

@@ -3,6 +3,8 @@ import Document from "../models/document.model.js";
 import { aiServices } from "../utils/geminiService.js";
 import Flashcard from "../models/flashcard.model.js";
 import Quiz from "../models/quiezz.model.js";
+import { findRelevanceChunks } from "../utils/textChunker.js";
+import ChatHistory from "../models/chatHistory.js";
 
 // @desc Generate flashcards from a document
 // @route POST /api/ai/generate-flashcards
@@ -156,6 +158,76 @@ const generateSummary = async (
 // @access Private
 const chat = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { question, documentId } = req.body;
+    if (!question || !documentId) {
+      return res.status(400).json({
+        message: "Question and Document ID are required",
+        success: false,
+      });
+    }
+    const document = await Document.findOne({
+      _id: documentId,
+      userId: req.user!._id,
+      status: "ready",
+    });
+    if (!document) {
+      return res
+        .status(404)
+        .json({ message: "Document not found or not ready", success: false });
+    }
+
+    const relevantChunks = await findRelevanceChunks(
+      document.chunks,
+      question,
+      3
+    );
+    const chunkindices = relevantChunks.map((chunk) => chunk.chunkIndex);
+
+    let chatHistory = await ChatHistory.findOne({
+      userId: req.user!._id,
+      documentId: document._id,
+    });
+
+    if (!chatHistory) {
+      chatHistory = await ChatHistory.create({
+        userId: req.user!._id,
+        documentId: document._id,
+        messages: [],
+      });
+    }
+
+    const answer = await aiServices.chatWithContext(question, relevantChunks);
+    if (!answer) {
+      return res.status(500).json({
+        message: "Failed to get response from AI service",
+        success: false,
+      });
+    }
+
+    chatHistory.messages.push({
+      role: "user",
+      content: question,
+      timestamp: new Date(),
+      releveantChunks: [],
+    });
+    chatHistory.messages.push({
+      role: "assistant",
+      content: answer,
+      timestamp: new Date(),
+      releveantChunks: chunkindices,
+    });
+    await chatHistory.save();
+    return res.status(200).json({
+      message: "Chat response generated successfully",
+      success: true,
+      data: {
+        answer,
+        chatHistory,
+        question,
+        relevantChunks,
+        chatHistoryId: chatHistory._id,
+      },
+    });
   } catch (error) {
     next(error);
   }
