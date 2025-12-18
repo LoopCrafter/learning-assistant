@@ -137,6 +137,57 @@ const getQuizResults = async (
   next: NextFunction
 ) => {
   try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Quiz ID is required" });
+    }
+    const quiz = await Quiz.findOne({
+      _id: id,
+      userId: req.user!._id,
+    });
+
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found",
+      });
+    }
+    if (!quiz.completedAt) {
+      return res.status(400).json({
+        success: false,
+        message: "Quiz has not been completed yet",
+      });
+    }
+
+    const detailedResults = quiz.questions.map((question, index) => {
+      const userAnswer = quiz.userAnswers.find(
+        (ua) => ua.questionIndex === index
+      );
+      return {
+        questionIndex: index,
+        question: question.question,
+        options: question.options,
+        correctAnswer: question.correctAnswer,
+        userAnswer: userAnswer ? userAnswer.selectedAnswer : null,
+        isCorrect: userAnswer?.isCorrect || false,
+        explanation: question.explanation,
+      };
+    });
+    res.status(200).json({
+      success: true,
+      data: {
+        quiz: {
+          id: quiz._id,
+          title: quiz.title,
+          questions: quiz.questions,
+          documentId: quiz.documentId,
+          completedAt: quiz.completedAt,
+          score: quiz.score,
+          totalQuestions: quiz.totalQuestions,
+        },
+      },
+      message: "Quiz results fetched successfully",
+    });
   } catch (error) {
     next(error);
   }
@@ -147,6 +198,26 @@ const getQuizResults = async (
 // @access Private
 const deleteQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Quiz ID is required" });
+    }
+    const quiz = await Quiz.findOneAndDelete({
+      _id: id,
+      userId: req.user!._id,
+    });
+
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Quiz deleted successfully",
+    });
   } catch (error) {
     next(error);
   }
