@@ -21,7 +21,8 @@ interface Flashcard {
 interface QuizItem {
   question: string;
   options: string[];
-  correct: number;
+  difficulty: "easy" | "medium" | "hard";
+  correctAnswer: string;
   explanation: string;
 }
 
@@ -114,8 +115,9 @@ const generateQuizFromText = async (
           {
             "question": "Clear, engaging question",
             "options": ["Option 1", "Option 2", "Option 3", "Option 4"],  // array of 4 strings
-            "correct": "",  //  correct option (value of correct answer in string)
+            "correctAnswer": "",  //  correct option (value of correct answer in string)
             "explanation": "Brief explanation (1-2 sentences) why this is correct, referencing the text"
+            "difficulty": "easy" | "medium" | "hard"  // difficulty level
           }
           // ... EXACTLY ${numOfQuestions} items, no more/less
         ],

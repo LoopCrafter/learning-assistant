@@ -91,8 +91,8 @@ const generateQuiz = async (
     const quiz = await Quiz.create({
       userId: req.user!._id,
       documentId: document._id,
-      questions,
       title: title || `${document.title} - Quiz` || "Untitled Quiz",
+      questions,
       totalQuestions: questions.length,
       score: 0,
     });
