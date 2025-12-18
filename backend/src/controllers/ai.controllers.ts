@@ -299,6 +299,30 @@ const getChatHistory = async (
   next: NextFunction
 ) => {
   try {
+    const { documentId } = req.params;
+    if (!documentId) {
+      return res
+        .status(400)
+        .json({ message: "Document ID is required", success: false });
+    }
+    const chatHistory = await ChatHistory.findOne({
+      userId: req.user!._id,
+      documentId,
+    }).select("messages");
+
+    if (!chatHistory) {
+      res.status(404).json({
+        message: "Chat history not found",
+        success: false,
+        data: [],
+      });
+    }
+
+    return res.status(200).json({
+      message: "Chat history retrieved successfully",
+      success: true,
+      data: chatHistory,
+    });
   } catch (error) {
     next(error);
   }
