@@ -196,8 +196,11 @@ const chat = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    const answer = await aiServices.chatWithContext(question, relevantChunks);
-    if (!answer) {
+    const aiResponse = await aiServices.chatWithContext(
+      question,
+      relevantChunks
+    );
+    if (aiResponse.success === false) {
       return res.status(500).json({
         message: "Failed to get response from AI service",
         success: false,
@@ -212,7 +215,7 @@ const chat = async (req: Request, res: Response, next: NextFunction) => {
     });
     chatHistory.messages.push({
       role: "assistant",
-      content: answer,
+      content: aiResponse.answer,
       timestamp: new Date(),
       releveantChunks: chunkindices,
     });
@@ -221,10 +224,12 @@ const chat = async (req: Request, res: Response, next: NextFunction) => {
       message: "Chat response generated successfully",
       success: true,
       data: {
-        answer,
+        answer: aiResponse.answer,
         chatHistory,
         question,
         relevantChunks,
+        chunkindices,
+        documentId: document._id,
         chatHistoryId: chatHistory._id,
       },
     });
@@ -242,6 +247,44 @@ const explainConcept = async (
   next: NextFunction
 ) => {
   try {
+    const { documentId, concept } = req.body;
+    if (!documentId || !concept) {
+      return res.status(400).json({
+        message: "Document ID and Concept are required",
+        success: false,
+      });
+    }
+    const document = await Document.findOne({
+      _id: documentId,
+      userId: req.user!._id,
+      status: "ready",
+    });
+    if (!document) {
+      return res
+        .status(404)
+        .json({ message: "Document not found or not ready", success: false });
+    }
+    const relevantChunks = await findRelevanceChunks(
+      document.chunks,
+      concept,
+      3
+    );
+    const chunkindices = relevantChunks.map((chunk) => chunk.chunkIndex);
+    const context = relevantChunks.map((chunk) => chunk.content).join("\n\n");
+
+    const explaination = await aiServices.explainConcept(concept, context);
+    if (explaination.success === false) {
+      return res.status(500).json({
+        message: explaination.answer,
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      message: "Concept explained successfully",
+      success: true,
+      data: { concept, explaination: explaination.answer },
+      relevantChunks,
+    });
   } catch (error) {
     next(error);
   }

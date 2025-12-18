@@ -250,12 +250,15 @@ Text: ${truncatedText}`;
 const chatWithContext = async (
   question: string,
   chunks: { content: string }[]
-): Promise<string | null> => {
+): Promise<{ answer: string; success: boolean }> => {
   if (!question || question.trim().length === 0) {
-    return "Please provide a valid question.";
+    return { answer: "Please provide a valid question.", success: false };
   }
   if (!chunks || chunks.length === 0) {
-    return "No context chunks provided. Unable to answer without context.";
+    return {
+      answer: "No context chunks provided. Unable to answer without context.",
+      success: false,
+    };
   }
 
   let context = chunks
@@ -306,7 +309,7 @@ Question: ${question}`;
 
     fullContent = fullContent.trim();
     if (fullContent === "") {
-      return "No response generated from stream.";
+      return { answer: "No response generated from stream.", success: false };
     }
 
     if (fullContent.length < 50) {
@@ -314,26 +317,42 @@ Question: ${question}`;
         "Stream response too short; using fallback. Content:",
         fullContent
       );
-      return "Based on the provided context, I couldn't generate a precise answer. Please refine your question or provide more chunks.";
+      return {
+        answer: `Based on the provided context, here's a basic answer: [Limited details available—context may need expansion]. For a fuller response, more information is recommended.`,
+        success: true,
+      };
     }
 
-    return fullContent;
+    return { answer: fullContent, success: true };
   } catch (error) {
     console.error("Error during chat:", error);
-    return null;
+    return {
+      answer:
+        "An error occurred while answering the question. Please check your API key and try again.",
+      success: false,
+    };
   }
 };
 
 const explainConcept = async (
   concept: string,
   context: string
-): Promise<string> => {
+): Promise<{ answer: string; success: boolean }> => {
   if (!concept || concept.trim().length === 0) {
-    return "Please provide a valid concept to explain.";
+    return {
+      answer: "Please provide a valid concept to explain.",
+      success: false,
+    };
   }
   if (!context || context.trim().length === 0) {
-    return "No context provided. Unable to explain without supporting information.";
+    return {
+      answer:
+        "No context provided. Unable to explain the concept without context.",
+      success: false,
+    };
   }
+
+  const cleanConcept = concept.trim().replace(/[?!\.]$/, "");
 
   const maxContextLength = 4000;
   let truncatedContext = context;
@@ -346,23 +365,28 @@ const explainConcept = async (
     );
   }
 
-  const prompt = `You are an expert educator and communicator, skilled at breaking down complex ideas into simple, engaging explanations. Using ONLY the provided context below, explain the concept of "${concept}" in a way that's accessible to beginners (e.g., high school level or non-experts). Do NOT add external knowledge, examples, or details not directly supported by the context—stick strictly to it. If the context doesn't cover the concept fully, note that clearly and explain what's available.
-        Structure your explanation clearly and engagingly (under 400 words total):
-        - **Definition**: A simple, one-sentence definition from the context.
-        - **Breakdown**: 3-5 key components or steps, explained simply (use analogies if implied in context).
-        - **Examples/Applications**: 1-2 brief, context-based examples or real-world ties.
-        - **Why It Matters**: A short note on importance or implications from the context.
-        - **Key Takeaway**: One memorable sentence to wrap up.
+  const prompt = `You are an expert educator and communicator, skilled at breaking down complex ideas into simple, engaging explanations. Using ONLY the provided context below, explain the concept of "${cleanConcept}" in a way that's accessible to beginners (e.g., high school level or non-experts). 
 
-        Use friendly language, short sentences, and bullet points for readability. Make it fun and encouraging to build curiosity.
+      CRITICAL: If the context does not mention or cover "${cleanConcept}" at all, respond ONLY with this exact short message (no structure, no elaboration): "The provided context does not cover the concept of ${cleanConcept}. Please provide more relevant information."
 
-        Context: ${truncatedContext}
+      If the context DOES cover it:
+      - Stick strictly to the context—no external knowledge.
+      - Structure clearly (under 300 words):
+        - **Definition**: Simple one-sentence definition from context.
+        - **Breakdown**: 3-5 key components/steps, simply explained.
+        - **Examples/Applications**: 1-2 context-based examples.
+        - **Why It Matters**: Short note on importance.
+        - **Key Takeaway**: Memorable sentence.
 
-        Explanation:`;
+      Use friendly language, bullets, short sentences.
+
+      Context: ${truncatedContext}
+
+      Explanation:`;
 
   try {
     const response = await openrouter.chat.send({
-      model: "google/gemini-2.0-flash-exp:free",
+      model: aiModel,
       messages: [
         {
           role: "user",
@@ -375,30 +399,46 @@ const explainConcept = async (
     let fullContent: string = "No explanation generated.";
     const content = response.choices[0]?.message?.content;
     if (typeof content === "string") {
-      fullContent = content;
+      fullContent = content.trim();
     } else if (Array.isArray(content)) {
       fullContent = content
         .filter(
           (item): item is { type: "text"; text: string } => item.type === "text"
         )
         .map((item) => (item as { type: "text"; text: string }).text)
-        .join("\n");
+        .join("\n")
+        .trim();
 
       if (fullContent.trim() === "") {
         fullContent = "No text content found in response.";
       }
     }
+
+    const lowerFull = fullContent.toLowerCase();
+    const lowerCleanConcept = cleanConcept.toLowerCase();
     if (
-      fullContent.length < 100 ||
-      !fullContent.toLowerCase().includes(concept.toLowerCase())
+      lowerFull.includes("does not cover") ||
+      lowerFull.includes("not mention") ||
+      lowerFull.includes("no information") ||
+      (fullContent.length < 50 && !lowerFull.includes(lowerCleanConcept))
     ) {
-      console.warn("Explanation too short or irrelevant; using fallback.");
-      fullContent = `Based on the provided context, here's a basic explanation of "${concept}": [Limited details available—context may need expansion]. For a fuller understanding, more information is recommended.`;
+      console.warn("Concept not covered; using short fallback.");
+      fullContent = `The provided context does not cover the concept of ${cleanConcept}. Please provide more relevant information.`;
     }
-    return fullContent;
+
+    const result = {
+      answer: fullContent,
+      success: true,
+    };
+
+    return result;
   } catch (error) {
     console.error("Error explaining concept:", error);
-    return "An error occurred while explaining the concept. Please check your API key and try again.";
+    return {
+      answer:
+        "An error occurred while explaining the concept. Please check your API key and try again.",
+      success: false,
+    };
   }
 };
 

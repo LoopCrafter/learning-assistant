@@ -76,7 +76,23 @@ router.post(
   validate,
   chat
 );
-router.post("/explain-concept", explainConcept);
+router.post(
+  "/explain-concept",
+  [
+    body("concept")
+      .notEmpty()
+      .withMessage("Concept is required")
+      .isString()
+      .withMessage("Concept must be a string"),
+    body("documentId")
+      .notEmpty()
+      .withMessage("Document ID is required")
+      .isMongoId()
+      .withMessage("Invalid Document ID"),
+  ],
+  validate,
+  explainConcept
+);
 router.get("/chat-history/:documentId", getChatHistory);
 
 export default router;
