@@ -59,6 +59,10 @@ const DocumentSchema: Schema<IDocument> = new Schema(
       enum: ["processing", "ready", "failed"],
       default: "processing",
     },
+    summary: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

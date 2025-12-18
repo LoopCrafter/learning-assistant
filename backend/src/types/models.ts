@@ -75,6 +75,7 @@ export interface IDocument {
   uploadDate: Date;
   lastAccessedAt: Date;
   status: string;
+  summary: string;
 }
 
 /**  DOCUMENT */

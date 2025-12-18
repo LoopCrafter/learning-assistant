@@ -115,6 +115,37 @@ const generateSummary = async (
   next: NextFunction
 ) => {
   try {
+    const { documentId } = req.body;
+    if (!documentId) {
+      return res
+        .status(400)
+        .json({ message: "Document ID is required", success: false });
+    }
+    const document = await Document.findOne({
+      _id: documentId,
+      userId: req.user!._id,
+      status: "ready",
+    });
+
+    if (!document) {
+      return res
+        .status(404)
+        .json({ message: "Document not found or not ready", success: false });
+    }
+    let summary = "";
+    if (document.summary) {
+      summary = document.summary;
+    } else {
+      summary = await aiServices.generateSummary(document.extractedText ?? "");
+      document.summary = summary;
+      await document.save();
+    }
+    console.log("Generated Summary:", summary);
+    return res.status(200).json({
+      message: "Summary generated successfully",
+      success: true,
+      data: { summary, title: document.title, documentId: document._id },
+    });
   } catch (error) {
     next(error);
   }

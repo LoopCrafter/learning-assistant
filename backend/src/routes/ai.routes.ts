@@ -47,7 +47,18 @@ router.post(
   validate,
   generateQuiz
 );
-router.post("/generate-summary", generateSummary);
+router.post(
+  "/generate-summary",
+  [
+    body("documentId")
+      .notEmpty()
+      .withMessage("Document ID is required")
+      .isMongoId()
+      .withMessage("Invalid Document ID"),
+  ],
+  validate,
+  generateSummary
+);
 router.post("/chat", chat);
 router.post("/explain-concept", explainConcept);
 router.get("/chat-history/:documentId", getChatHistory);

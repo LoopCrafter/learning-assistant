@@ -207,7 +207,7 @@ Keep it readable, avoid jargon unless essential (explain if needed), and ensure 
 Text: ${truncatedText}`;
   try {
     const response = await openrouter.chat.send({
-      model: "google/gemini-2.0-flash-exp:free",
+      model: aiModel,
       messages: [
         {
           role: "user",
