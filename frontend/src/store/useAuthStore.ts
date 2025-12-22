@@ -11,14 +11,15 @@ type User = {
   id: string;
   profileImage: string | null;
   updatedAt: string;
-  username: string;
+  name: string;
 };
 
 type AuthStore = {
   isAuthorized: boolean;
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (username: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthStore>()(
@@ -48,6 +49,15 @@ export const useAuthStore = create<AuthStore>()(
             password,
           });
           set({ user: response.data, isAuthorized: true });
+        } catch (error: ErrorMessage | any) {
+          toast.error(error.message || "Something went wrong");
+          throw error;
+        }
+      },
+      logout: async () => {
+        try {
+          await Api.post(API_Paths.AUTH.LOGOUT);
+          set({ user: null, isAuthorized: false });
         } catch (error: ErrorMessage | any) {
           toast.error(error.message || "Something went wrong");
           throw error;
