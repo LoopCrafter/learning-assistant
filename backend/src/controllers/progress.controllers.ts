@@ -45,7 +45,7 @@ const getDashboard = async (
     const recentDocuments = await Document.find({ userId })
       .sort({ lastAccessedAt: -1 })
       .limit(5)
-      .select("title fileName lastAccessedAt status");
+      .select("title fileName lastAccessedAt status description");
 
     const recentQuizzes = await Quiz.find({ userId })
       .sort({ createdAt: -1 })

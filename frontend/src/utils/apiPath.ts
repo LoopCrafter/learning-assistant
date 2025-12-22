@@ -2,7 +2,7 @@ export const API_Paths = {
   AUTH: {
     REGISTER: "/api/auth/register",
     LOGIN: "/api/auth/login",
-    LOGOUT: "/api/auth/",
+    LOGOUT: "/api/auth/logout",
     GET_PROFILE: "/api/auth/profile",
     UPDATE_PROFILE: "/api/auth/profile",
     CHANGE_PASSWORD: "/api/auth/change-password",

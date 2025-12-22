@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             </div>
             <button
               onClick={toggleSidebar}
-              className="md:hiden text-slate-500 hover:text-slate-800"
+              className="md:hidden text-slate-500 hover:text-slate-800"
             >
               <X size={24} />
             </button>
