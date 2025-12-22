@@ -4,7 +4,7 @@ import type { IUser } from "../types/models.js";
 
 const UserSchema: Schema<IUser> = new Schema(
   {
-    username: {
+    name: {
       type: String,
       required: [true, "please provide a username"],
       unique: true,

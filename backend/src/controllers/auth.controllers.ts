@@ -17,15 +17,15 @@ const register = async (
   next: NextFunction
 ) => {
   try {
-    const { email, username, password } = req.body;
-    const existUser = await User.findOne({ $or: [{ email }, { username }] });
+    const { email, name, password } = req.body;
+    const existUser = await User.findOne({ email });
     if (existUser) {
       return res.status(400).json({
         success: false,
-        message: "User with given email or username already exists",
+        message: "User with given email already exists",
       });
     }
-    const user = await User.create({ email, username, password });
+    const user = await User.create({ email, name, password });
     generateToken(user._id.toString(), res);
 
     return res.status(201).json({
@@ -34,7 +34,7 @@ const register = async (
       data: {
         id: user._id.toString(),
         email: user.email,
-        username: user.username,
+        name: user.name,
         profileImage: user.profileImage,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -84,7 +84,7 @@ const login = async (
       data: {
         id: user._id.toString(),
         email: user.email,
-        username: user.username,
+        name: user.name,
         profileImage: user.profileImage,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -117,7 +117,7 @@ const getProfile = async (
       data: {
         id: user._id.toString(),
         email: user.email,
-        username: user.username,
+        name: user.name,
         profileImage: user.profileImage,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -137,7 +137,7 @@ const updateProfile = async (
   next: NextFunction
 ) => {
   try {
-    const { username, email, password, profileImage } = req.body;
+    const { name, email, password, profileImage } = req.body;
     const user = await User.findById(req.user?._id);
     if (!user) {
       return res.status(404).json({
@@ -145,7 +145,7 @@ const updateProfile = async (
         message: "User not found",
       });
     }
-    if (username) user.username = username;
+    if (name) user.name = name;
     if (email) user.email = email;
     if (password) user.password = password;
     if (profileImage) user.profileImage = profileImage;
@@ -156,7 +156,7 @@ const updateProfile = async (
       data: {
         id: user._id.toString(),
         email: user.email,
-        username: user.username,
+        name: user.name,
         profileImage: user.profileImage,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

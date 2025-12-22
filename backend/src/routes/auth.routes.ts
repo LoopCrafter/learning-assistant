@@ -14,10 +14,10 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 const router = Router();
 
 const registerValidation = [
-  body("username")
+  body("name")
     .trim()
     .isLength({ min: 3 })
-    .withMessage("Username must be at least 3 characters long"),
+    .withMessage("name must be at least 3 characters long"),
   body("email").isEmail().withMessage("please provide a valid email address"),
   body("password")
     .isLength({ min: 6 })

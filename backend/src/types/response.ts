@@ -10,7 +10,7 @@ export type ApiResponse<T> = {
 
 export type UserResponseData = {
   id: string;
-  username: string;
+  name: string;
   email: string;
   profileImage: string | null;
   createdAt: Date;

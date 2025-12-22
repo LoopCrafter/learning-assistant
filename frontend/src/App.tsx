@@ -17,40 +17,50 @@ import FlashCardPage from "./pages/flashCards/FlashCardPage";
 import QuizzTakePage from "./pages/quizzes/QuizzTakePage";
 import QuizzResultPage from "./pages/quizzes/QuizzResultPage";
 import ProfilePage from "./pages/profile/ProfilePage";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const App = () => {
   const isAuthorized = false;
-  return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            isAuthorized ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
 
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-        <Route element={<ProtcteedRoute />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/documents" element={<DocumentListPage />} />
-          <Route path="/documents/:id" element={<DocumentDetailPage />} />
-          <Route path="/flashcards" element={<FlashCardListPage />} />
-          <Route path="/documents/:id/flashcards" element={<FlashCardPage />} />
-          <Route path="/quizzes/:quizzId" element={<QuizzTakePage />} />
+  return (
+    <>
+      <ToastContainer />
+      <Router>
+        <Routes>
           <Route
-            path="/quizzes/:quizzId/results"
-            element={<QuizzResultPage />}
+            path="/"
+            element={
+              isAuthorized ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route path="/profile" element={<ProfilePage />} />
-        </Route>
-      </Routes>
-    </Router>
+
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+          <Route element={<ProtcteedRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/documents" element={<DocumentListPage />} />
+            <Route path="/documents/:id" element={<DocumentDetailPage />} />
+            <Route path="/flashcards" element={<FlashCardListPage />} />
+            <Route
+              path="/documents/:id/flashcards"
+              element={<FlashCardPage />}
+            />
+            <Route path="/quizzes/:quizzId" element={<QuizzTakePage />} />
+            <Route
+              path="/quizzes/:quizzId/results"
+              element={<QuizzResultPage />}
+            />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+        </Routes>
+      </Router>
+    </>
   );
 };
 

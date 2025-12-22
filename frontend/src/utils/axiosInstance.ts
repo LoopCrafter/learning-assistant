@@ -36,7 +36,10 @@ Api.interceptors.response.use(
         console.log("Not Found");
       }
     }
-    return Promise.reject(error);
+    return Promise.reject({
+      status: error.response.status,
+      message: error.response.data.message,
+    });
   }
 );
 

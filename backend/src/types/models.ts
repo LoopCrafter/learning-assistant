@@ -29,7 +29,7 @@ export interface IQuiz extends Document {
 
 /**  USER */
 export interface IUser extends Document {
-  username: string;
+  name: string;
   email: string;
   password: string;
   profileImage: string | null;

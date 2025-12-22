@@ -2,7 +2,7 @@ import { useActionState, useEffect, useState } from "react";
 import { loginAction } from "../../lib/actions/auth";
 import type { LoginState } from "../../lib/actions/types";
 import { Eye, EyeClosed } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const initialValue: LoginState = {
   success: false,
@@ -80,7 +80,12 @@ const LoginPage = () => {
           {inPending ? "Loading..." : "Login"}
         </button>
 
-        <p className="mt-6 text-center text-xs text-gray-400">© Secure Login</p>
+        <p className="mt-6 text-center text-xs text-gray-400">
+          Don't have an account?{" "}
+          <Link to="/signup" className="text-green-600 hover:underline">
+            Create one
+          </Link>
+        </p>
       </form>
     </div>
   );
