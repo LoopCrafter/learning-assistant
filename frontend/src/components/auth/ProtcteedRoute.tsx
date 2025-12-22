@@ -8,12 +8,10 @@ const ProtcteedRoute = () => {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  return isAuthorized ? (
+  return (
     <AppLayout>
       <Outlet />
     </AppLayout>
-  ) : (
-    <Navigate to="/login" />
   );
 };
 
