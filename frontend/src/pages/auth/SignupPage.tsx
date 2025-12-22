@@ -1,8 +1,8 @@
 import { useActionState, useState, useEffect } from "react";
 import { signupAction } from "../../lib/actions/auth";
 import type { SignupState } from "../../lib/actions/types";
-import { Eye, EyeClosed } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { BrainCircuit, Eye, EyeClosed } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const initialValue: SignupState = {
   success: false,
@@ -31,9 +31,15 @@ const SignupPage = () => {
         action={formAction}
         className="w-full max-w-sm rounded-xl border border-gray-200 p-8 shadow-sm"
       >
-        <h1 className="mb-6 text-center text-2xl font-semibold text-green-600">
-          Sign up
-        </h1>
+        <div className="text-center flex justify-center items-center flex-col mb-4">
+          <div className=" flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/25 mb-2">
+            <BrainCircuit className="size-7 text-white" strokeWidth={2} />
+          </div>
+          <h1 className="text-2xl font-medium text-black">Welcome</h1>
+          <p className="text-slate-500 text-sm">
+            Sign up to start your journey
+          </p>
+        </div>
 
         <div className="mb-4">
           <label className="mb-1 block text-sm text-gray-700">Name</label>
@@ -126,7 +132,10 @@ const SignupPage = () => {
         </button>
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          © Secure Signup
+          Do you have already an account?{" "}
+          <Link to="/login" className="text-green-600 hover:underline">
+            Login
+          </Link>
         </p>
       </form>
     </div>
