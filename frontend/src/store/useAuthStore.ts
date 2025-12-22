@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import Api from "../utils/axiosInstance";
 import { API_Paths } from "../utils/apiPath";
-import { Bounce, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import type { ErrorMessage } from "../types";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 type User = {
   createdAt: string;
@@ -20,42 +21,42 @@ type AuthStore = {
   signup: (username: string, email: string, password: string) => Promise<void>;
 };
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
-  user: null,
-  isAuthorized: false,
-  login: async (email: string, password: string) => {
-    try {
-      const response = await Api.post(API_Paths.AUTH.LOGIN, {
-        email,
-        password,
-      });
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      isAuthorized: false,
+      login: async (email: string, password: string) => {
+        try {
+          const response = await Api.post(API_Paths.AUTH.LOGIN, {
+            email,
+            password,
+          });
 
-      set({ user: response.data, isAuthorized: true });
-    } catch (error) {
-      console.log(error);
-      throw error;
+          set({ user: response.data, isAuthorized: true });
+        } catch (error: ErrorMessage | any) {
+          console.log(error);
+          toast.error(error.message || "Something went wrong");
+          throw error;
+        }
+      },
+      signup: async (name: string, email: string, password: string) => {
+        try {
+          const response = await Api.post(API_Paths.AUTH.REGISTER, {
+            name,
+            email,
+            password,
+          });
+          set({ user: response.data, isAuthorized: true });
+        } catch (error: ErrorMessage | any) {
+          toast.error(error.message || "Something went wrong");
+          throw error;
+        }
+      },
+    }),
+    {
+      name: "user",
+      storage: createJSONStorage(() => sessionStorage),
     }
-  },
-  signup: async (name: string, email: string, password: string) => {
-    try {
-      const response = await Api.post(API_Paths.AUTH.REGISTER, {
-        name,
-        email,
-        password,
-      });
-      set({ user: response.data, isAuthorized: true });
-    } catch (error: ErrorMessage | any) {
-      toast.error(error.message || "Something went wrong", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
-        transition: Bounce,
-      });
-      throw error;
-    }
-  },
-}));
+  )
+);
