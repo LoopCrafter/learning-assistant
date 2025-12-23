@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Api from "../../utils/axiosInstance";
 import { API_Paths } from "../../utils/apiPath";
 import type { DashboardData } from "./types";
-import Spinner from "@src/components/shared/spinner";
+import Spinner from "@src/components/common/spinner";
 import {
   BookOpen,
   BrainCircuit,

@@ -8,7 +8,7 @@ export const API_Paths = {
     CHANGE_PASSWORD: "/api/auth/change-password",
   },
   DOCUMENTS: {
-    UPLOAD: "/api/documents/upload",
+    UPLOAD_DOCUMENTS: "/api/documents/upload",
     GET_DOCUMENTS: "/api/documents",
     GET_DOCUMENT_BY_ID: (id: string) => `/api/documents/${id}`,
     DELETE_DOCUMENT: (id: string) => `/api/documents/${id}`,

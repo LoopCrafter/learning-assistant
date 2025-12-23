@@ -126,7 +126,8 @@ const SignupPage = () => {
         <button
           type="submit"
           disabled={inPending}
-          className="w-full rounded-lg bg-green-600 py-2 text-sm font-medium text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          className="w-full text-center group flex items-center justify-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-slate-50 hover:text-slate-900 hover:shadow-lg hover:shadow-emerald-500/30
+              "
         >
           {inPending ? "Loading..." : "Sign up"}
         </button>
