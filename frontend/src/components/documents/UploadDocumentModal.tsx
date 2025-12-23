@@ -15,12 +15,11 @@ const initialState: UploadActionState = {
 const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
   toggleUploadModal,
 }) => {
-  const [state, action, pending] = useActionState(
+  const [state, action, uploading] = useActionState(
     uploadDocumentAction,
     initialState
   );
 
-  const [uploading, setUploading] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
 

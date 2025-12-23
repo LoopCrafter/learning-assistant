@@ -2,6 +2,7 @@
 
 import type { UploadActionState } from "@src/components/documents/types";
 import { uploadSchema } from "../schema/document.schema";
+import { useDocumentStore } from "@src/store/useDocumentsStore";
 
 export async function uploadDocumentAction(
   prevState: UploadActionState,
@@ -26,15 +27,30 @@ export async function uploadDocumentAction(
       errors: parsed.error.flatten().fieldErrors,
     };
   }
+  try {
+    await useDocumentStore.getState().uploadDocument(formData);
+    console.log("Uploaded successFully");
+    return {
+      success: true,
+      data: {
+        title: parsed.data.title,
+        fileName: parsed.data.file.name,
+      },
+      errors: {},
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected server error";
 
-  // upload logic here...
-
-  return {
-    success: true,
-    data: {
-      title: parsed.data.title,
-      fileName: parsed.data.file.name,
-    },
-    errors: {},
-  };
+    return {
+      success: false,
+      data: {
+        title,
+        fileName: file?.name,
+      },
+      errors: {
+        form: [message],
+      },
+    };
+  }
 }

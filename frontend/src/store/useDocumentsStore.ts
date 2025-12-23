@@ -11,7 +11,7 @@ type DocumentStore = {
   uploadDocument: (formData: FormData) => Promise<void>;
 };
 
-export const useDocumentStore = create<DocumentStore>((set) => ({
+export const useDocumentStore = create<DocumentStore>((set, get) => ({
   documents: [],
   loadingFetchingDocuments: false,
   errorFetchingDocuments: null,
@@ -28,10 +28,8 @@ export const useDocumentStore = create<DocumentStore>((set) => ({
   },
   uploadDocument: async (formData) => {
     try {
-      const result = await Api.post(
-        API_Paths.DOCUMENTS.UPLOAD_DOCUMENTS,
-        formData
-      );
+      await Api.post(API_Paths.DOCUMENTS.UPLOAD_DOCUMENTS, formData);
+      await get().getDocuments();
     } catch (error) {}
   },
 }));
