@@ -1,15 +1,34 @@
+import { uploadDocumentAction } from "@src/lib/actions/uploadDocument";
 import { Upload, X } from "lucide-react";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import type { UploadActionState } from "./types";
 
 type UploadDocumentModalProps = {
   toggleUploadModal: (state: boolean) => void;
 };
+const initialState: UploadActionState = {
+  success: false,
+  data: undefined,
+  errors: {},
+};
+
 const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
   toggleUploadModal,
 }) => {
+  const [state, action, pending] = useActionState(
+    uploadDocumentAction,
+    initialState
+  );
+
   const [uploading, setUploading] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
+
+  useEffect(() => {
+    if (state.success) {
+      toggleUploadModal(false);
+    }
+  }, [state.success]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -18,8 +37,6 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
     setUploadFile(file);
     setUploadTitle(file.name.replace(/\.[^/.]+$/, ""));
   };
-
-  const handleUpload = async () => {};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
@@ -39,7 +56,15 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
             Add a PDF document to your library
           </p>
         </div>
-        <form onSubmit={handleUpload} className="space-y-5">
+        <form
+          action={(formData) => {
+            if (uploadFile) {
+              formData.set("file", uploadFile);
+            }
+            action(formData);
+          }}
+          className="space-y-5"
+        >
           <div className="space-y-2">
             <label
               htmlFor=""
@@ -50,9 +75,13 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
             <input
               type="text"
               name="title"
+              defaultValue={state.data?.title}
               placeholder="e.g, React Interview Prep"
               className="w-full h-12 px-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20"
             />
+            {state.errors.title && (
+              <p className="text-xs text-red-500">{state.errors.title[0]}</p>
+            )}
           </div>
           <div className="space-y-2">
             <label
@@ -90,6 +119,9 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
                 <p className="text-xs text-slate-500">PDF up to 10MB</p>
               </div>
             </div>
+            {state.errors.file && (
+              <p className="text-xs text-red-500">{state.errors.file[0]}</p>
+            )}
           </div>
           <div className="flex gap-3 pt-2">
             <button
