@@ -13,7 +13,8 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ document, onDelete }) => {
     navigate(`/documents/${document._id}`);
   };
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     onDelete();
   };
   return (
