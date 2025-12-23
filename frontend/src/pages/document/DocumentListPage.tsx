@@ -2,11 +2,11 @@ import Button from "@src/components/common/Button";
 import PageTitle from "@src/components/common/PageTitle";
 import Spinner from "@src/components/common/spinner";
 import DocumentCard from "@src/components/documents/DocumentCard";
+import UploadDocumentModal from "@src/components/documents/UploadDocumentModal";
 import { useDocumentStore } from "@src/store/useDocumentsStore";
 import type { Document } from "@src/types/document";
 import { FileText, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { set } from "zod";
+import { Activity, useEffect, useState } from "react";
 
 const DocumentListPage = () => {
   const getDocuments = useDocumentStore((state) => state.getDocuments);
@@ -20,9 +20,6 @@ const DocumentListPage = () => {
 
   // states for upload modal
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadTitle, setUploadTitle] = useState("");
-  const [uploading, setUploading] = useState(false);
 
   // states for deleting confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -32,16 +29,6 @@ const DocumentListPage = () => {
   useEffect(() => {
     getDocuments();
   }, []);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-
-    const file = e.target.files[0];
-    setUploadFile(file);
-    setUploadTitle(file.name.replace(/\.[^/.]+$/, ""));
-  };
-
-  const handleUpload = async () => {};
 
   const handleDeleteRequest = async (doc: Document) => {
     setSelectedDoc(doc);
@@ -130,6 +117,11 @@ const DocumentListPage = () => {
         </div>
         {renderContent()}
       </div>
+      <Activity mode={isUploadModalOpen ? "visible" : "hidden"}>
+        <UploadDocumentModal
+          toggleUploadModal={(state: boolean) => setIsUploadModalOpen(state)}
+        />
+      </Activity>
     </div>
   );
 };
