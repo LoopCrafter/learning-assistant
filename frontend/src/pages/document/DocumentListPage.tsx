@@ -1,9 +1,10 @@
 import Button from "@src/components/common/Button";
 import PageTitle from "@src/components/common/PageTitle";
 import Spinner from "@src/components/common/spinner";
+import DocumentCard from "@src/components/documents/DocumentCard";
 import { useDocumentStore } from "@src/store/useDocumentsStore";
 import type { Document } from "@src/types/document";
-import { Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { set } from "zod";
 
@@ -63,10 +64,53 @@ const DocumentListPage = () => {
     setIsDeleteModalOpen(false);
   };
 
-  if (loadingFetchingDocuments) return <Spinner />;
-  if (errorFetchingDocuments) return <div>{errorFetchingDocuments}</div>;
   const renderContent = () => {
-    return <div>Render Content</div>;
+    if (loadingFetchingDocuments)
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Spinner />
+        </div>
+      );
+    if (errorFetchingDocuments) return <div>{errorFetchingDocuments}</div>;
+    if (documents?.length === 0) {
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center max-w-md">
+            <div className="inline-flex justify-center items-center w-20 h-20 rounded-2xl bg-linear-to-br from-slate-100 to-slate-200 shadow-lg shadow-slate-200/50 mb-8">
+              <FileText
+                className="w-10 h-10 text-slate-400"
+                strokeWidth={1.5}
+              />
+            </div>
+            <h3 className="text-xl font-medium text-slate-900 mb-2 tracking-tight">
+              No Documents Yet
+            </h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Get Started by uploading your first PDF document to start
+              learning.
+            </p>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98]"
+            >
+              <Plus className="w-4 h-4" strokeWidth={2.5} />
+              Upload Document
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {documents?.map((doc) => (
+          <DocumentCard
+            key={doc._id}
+            document={doc}
+            onDelete={() => handleDeleteRequest(doc)}
+          />
+        ))}
+      </div>
+    );
   };
   return (
     <div className="min-h-screen ">
@@ -79,7 +123,7 @@ const DocumentListPage = () => {
           />
           {documents?.length > 0 && (
             <Button onClick={() => setIsUploadModalOpen(true)}>
-              <Plus className="" strokeWidth={2.5} />
+              <Plus className="w-4 h-4" strokeWidth={2.5} />
               Upload Document
             </Button>
           )}
