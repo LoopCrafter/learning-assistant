@@ -1,3 +1,8 @@
+type Chunk = {
+  content: string;
+  pageNumber: number;
+  chunkIndex: number;
+};
 export type Document = {
   _id: string;
   userId: string;
@@ -15,4 +20,5 @@ export type Document = {
   uploadDate: string;
   lastAccessedAt: string;
   __v: number;
+  chunks: Chunk[];
 };

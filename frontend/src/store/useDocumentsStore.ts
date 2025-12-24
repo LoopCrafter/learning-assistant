@@ -11,6 +11,7 @@ type DocumentStore = {
   errorFetchingDocuments: string | null;
   uploadDocument: (formData: FormData) => Promise<void>;
   deleteDocument: (documentId: string) => Promise<void>;
+  getDocumentDetail: (documentId: string) => Promise<Document | undefined>;
 };
 
 export const useDocumentStore = create<DocumentStore>((set, get) => ({
@@ -39,6 +40,14 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       await Api.delete(API_Paths.DOCUMENTS.DELETE_DOCUMENT(documentId));
       toast.success("Docuemnt has been removed successfully!");
       await get().getDocuments();
+    } catch (error) {}
+  },
+  getDocumentDetail: async (documentId: string) => {
+    try {
+      const result = await Api.get(
+        API_Paths.DOCUMENTS.GET_DOCUMENT_BY_ID(documentId)
+      );
+      return result.data;
     } catch (error) {}
   },
 }));
