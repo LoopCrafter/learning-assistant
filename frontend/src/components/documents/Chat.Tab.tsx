@@ -5,6 +5,7 @@ import { MessageSquare, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Spinner from "../common/spinner";
+import MarkdownRenderer from "../common/MarkdownRenderer";
 
 const ChatTab = () => {
   const getChatHistory = useChatStore((state) => state.getChatHistory);
@@ -72,8 +73,43 @@ const ChatTab = () => {
     }
   };
 
-  const renderMessages = () => {
-    return "render messages";
+  const renderMessages = (msg: Message, index: number) => {
+    const isUser = msg.role === RolesEnum.USER;
+    return (
+      <div
+        role={msg.role}
+        className={`flex items-start gap-3 my-4 w-full ${
+          isUser ? "justify-end" : "justify-start"
+        }`}
+        key={index}
+      >
+        {!isUser && (
+          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/25 flex items-center justify-center shrink">
+            <Sparkles className="w-4 h-4 text-white " strokeWidth={2} />
+          </div>
+        )}
+        <div
+          className={`max-w-lg p-4 rounded-2xl shadow-sm ${
+            isUser
+              ? "bg-linear-to-br from-emerald-500 to-teal-500 text-white rounded-br-md"
+              : "bg-white border border-slate-200/60 text-slate-800 rounded-bl-md"
+          }`}
+        >
+          {isUser ? (
+            <p className="text-sm leading-relaxed">{msg.content}</p>
+          ) : (
+            <div className="prose prose-sm max-w-none prose-slate">
+              <MarkdownRenderer content={msg.content} />
+            </div>
+          )}
+        </div>
+        {isUser && (
+          <div className="size-9 rounded-xl bg-linear-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-700 font-semibold text-sm shrink-0 shadow-sm">
+            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+        )}
+      </div>
+    );
   };
   if (initialLoading) {
     return (
@@ -88,6 +124,7 @@ const ChatTab = () => {
       </div>
     );
   }
+
   return (
     <div className="flex flex-col h-[70vh] bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-200/50 overflow-y-auto">
       <div className="flex-1 p-6 overflow-auto bg-linear-to-br from-slate-50/50 via-white/50 to-slate-50/50">
@@ -107,7 +144,7 @@ const ChatTab = () => {
             </p>
           </div>
         ) : (
-          <div className=""></div>
+          <div className="">{history?.map(renderMessages)}</div>
         )}
         <div ref={messageEndRef} />
         {loading && (

@@ -15,7 +15,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
   getChatHistory: async (documentId: string) => {
     try {
       const result = await Api(API_Paths.AI.GET_CHAT_HISTORY(documentId));
-      return result.data;
+      return result.data.messages;
     } catch (error) {}
   },
   chatWithFile: async (documentId: string, question: string) => {
