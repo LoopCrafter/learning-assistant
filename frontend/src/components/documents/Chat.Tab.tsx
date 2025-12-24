@@ -4,7 +4,6 @@ import { RolesEnum, type Message } from "@src/types/chat";
 import { MessageSquare, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { set } from "zod";
 import Spinner from "../common/spinner";
 
 const ChatTab = () => {
@@ -21,6 +20,10 @@ const ChatTab = () => {
   const scrollToBottom = () => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [history]);
 
   useEffect(() => {
     const fetchChatHistory = async (documentId: string) => {
