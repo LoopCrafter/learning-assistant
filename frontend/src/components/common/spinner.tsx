@@ -2,10 +2,10 @@ import { Loader2 } from "lucide-react";
 
 const Spinner: React.FC<{ size?: number; color?: string }> = ({
   size = 24,
-  color = "text-slate-500",
+  color = "text-emerald-500",
 }) => {
   return (
-    <div className="flex items-center justify-center h-1/2">
+    <div className="flex items-center justify-center">
       <Loader2 className={`animate-spin ${color}`} size={size} />
     </div>
   );

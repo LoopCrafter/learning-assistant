@@ -310,18 +310,10 @@ const getChatHistory = async (
       documentId,
     }).select("messages");
 
-    if (!chatHistory) {
-      res.status(404).json({
-        message: "Chat history not found",
-        success: false,
-        data: [],
-      });
-    }
-
     return res.status(200).json({
       message: "Chat history retrieved successfully",
       success: true,
-      data: chatHistory,
+      data: chatHistory ?? [],
     });
   } catch (error) {
     next(error);
