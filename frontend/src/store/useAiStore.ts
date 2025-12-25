@@ -14,6 +14,7 @@ type AiStore = {
   ) => Promise<{ explaination: string }>;
   fetchFlashcardsForDoc: (documentId: string) => Promise<FlashcardsSet[]>;
   generateFlashcard: (documentId: string, count: number) => Promise<void>;
+  deleteFlashcardSet: (id: string) => Promise<void>;
 };
 
 export const useAiStore = create<AiStore>((set) => ({
@@ -57,6 +58,22 @@ export const useAiStore = create<AiStore>((set) => ({
         count,
       });
       toast.success("Flashcards generated successfully");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+
+      toast.error(message);
+      throw error;
+    }
+  },
+  deleteFlashcardSet: async (id: string) => {
+    try {
+      const result = await Api.delete(
+        API_Paths.FLASHCARDS.DELETE_FLASHCARD_SET(id)
+      );
+      console.log(result);
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||

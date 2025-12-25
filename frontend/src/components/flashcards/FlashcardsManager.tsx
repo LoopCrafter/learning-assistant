@@ -7,6 +7,7 @@ import { formatRelativeTime } from "@src/utils";
 import FlashcardList from "./FlashcardList";
 import NoFlashcardSets from "./NoFlashcardSets";
 import Modal from "../common/Modal";
+import { toast } from "react-toastify";
 
 type FlashcardsManagerProps = {
   documentId?: string;
@@ -17,6 +18,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
 }) => {
   const fetchFlashcards = useAiStore((state) => state.fetchFlashcardsForDoc);
   const generateFlashcard = useAiStore((state) => state.generateFlashcard);
+  const deleteFlashcardSet = useAiStore((state) => state.deleteFlashcardSet);
   const [flashcardsSets, setFlashcardsSets] = useState<FlashcardsSet[]>([]);
   const [seelctedSet, setSeelctedSet] = useState<FlashcardsSet | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +74,19 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
     setIsDeleteModalOpen(true);
   };
   const handleConfirmDelete = async () => {
-    //TODO
+    if (!setToDelete) return;
+    setDeleting(true);
+    try {
+      await deleteFlashcardSet(setToDelete._id);
+      toast.success("flashcard set has been removed successfully!");
+
+      setIsDeleteModalOpen(false);
+      handleFetchFlashcards();
+    } catch (error: any) {
+      toast.success(error.message);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleSelectSet = (set: FlashcardsSet) => {
@@ -93,10 +107,12 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
     }
 
     if (flashcardsSets.length === 0) {
-      <NoFlashcardSets
-        generating={generating}
-        handleGenerateFlashcards={handleGenerateFlashcards}
-      />;
+      return (
+        <NoFlashcardSets
+          generating={generating}
+          handleGenerateFlashcards={handleGenerateFlashcards}
+        />
+      );
     }
     return (
       <FlashcardList
