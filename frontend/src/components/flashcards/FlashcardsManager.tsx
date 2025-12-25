@@ -1,6 +1,6 @@
 import { useAiStore } from "@src/store/useAiStore";
 import type { FlashcardsSet } from "@src/types/flashcard";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Spinner from "../common/spinner";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import FlashcardList from "./FlashcardList";
@@ -16,6 +16,8 @@ type FlashcardsManagerProps = {
 const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   documentId = "",
 }) => {
+  const reviewTimeoutRef = useRef<number | null>(null);
+
   const fetchFlashcards = useAiStore((state) => state.fetchFlashcardsForDoc);
   const generateFlashcard = useAiStore((state) => state.generateFlashcard);
   const deleteFlashcardSet = useAiStore((state) => state.deleteFlashcardSet);
@@ -68,12 +70,17 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const handleReview = async (index: number) => {
     const currentCard = selectedSet?.cards[index];
     if (!currentCard) return;
-    try {
-      await reviewFlashcard(currentCard._id);
-      toast.success("Flashcard Reviewed");
-    } catch (error) {
-      toast.error("failed to review flashcard");
+    if (reviewTimeoutRef.current) {
+      clearTimeout(reviewTimeoutRef.current);
     }
+    reviewTimeoutRef.current = window.setTimeout(async () => {
+      try {
+        await reviewFlashcard(currentCard._id);
+        toast.success("Flashcard Reviewed");
+      } catch (error) {
+        toast.error("failed to review flashcard");
+      }
+    }, 500);
   };
   const handleNextCard = () => {
     if (selectedSet) {
