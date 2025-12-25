@@ -20,6 +20,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const generateFlashcard = useAiStore((state) => state.generateFlashcard);
   const deleteFlashcardSet = useAiStore((state) => state.deleteFlashcardSet);
   const toggleFavorite = useAiStore((state) => state.toggleFavorite);
+  const reviewFlashcard = useAiStore((state) => state.reviewFlashcard);
 
   const [flashcardsSets, setFlashcardsSets] = useState<FlashcardsSet[]>([]);
   const [selectedSet, setselectedSet] = useState<
@@ -31,7 +32,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [setToDelete, setSetToDelete] = useState<FlashcardsSet | null>(null);
-  const [numOfFlashcardToGenerate, setNumOfFlashcardToGenerate] = useState(2);
+  const [numOfFlashcardToGenerate, setNumOfFlashcardToGenerate] = useState(5);
 
   const handleFetchFlashcards = async () => {
     setLoading(true);
@@ -65,7 +66,14 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   };
 
   const handleReview = async (index: number) => {
-    //TODO
+    const currentCard = selectedSet?.cards[index];
+    if (!currentCard) return;
+    try {
+      await reviewFlashcard(currentCard._id);
+      toast.success("Flashcard Reviewed");
+    } catch (error) {
+      toast.error("failed to review flashcard");
+    }
   };
   const handleNextCard = () => {
     if (selectedSet) {
@@ -89,7 +97,6 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const handleToggleStar = async (cardId: string) => {
     try {
       await toggleFavorite(cardId);
-      debugger;
       const updatedSets = flashcardsSets.map((set) => {
         if (set._id === selectedSet?._id) {
           const updatedCard = set.cards.map((card) => {
@@ -103,7 +110,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
       });
       setFlashcardsSets(updatedSets);
       setselectedSet(updatedSets.find((set) => set._id === selectedSet?._id));
-      toast.success("flashcard favorite state update successfully");
+      toast.success("flashcard favorite status update successfully");
     } catch (error: any) {
       toast.error(error.message);
     }

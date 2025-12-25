@@ -16,6 +16,7 @@ type AiStore = {
   generateFlashcard: (documentId: string, count: number) => Promise<void>;
   deleteFlashcardSet: (id: string) => Promise<void>;
   toggleFavorite: (id: string) => Promise<void>;
+  reviewFlashcard: (cardId: string) => Promise<void>;
 };
 
 export const useAiStore = create<AiStore>((set) => ({
@@ -85,6 +86,19 @@ export const useAiStore = create<AiStore>((set) => ({
   toggleFavorite: async (id: string) => {
     try {
       await Api.put(API_Paths.FLASHCARDS.TOGGLE_STAR(id));
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+
+      toast.error(message);
+      throw error;
+    }
+  },
+  reviewFlashcard: async (cardId: string) => {
+    try {
+      await Api.post(API_Paths.FLASHCARDS.REVIEW_FLASHCARD(cardId));
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
