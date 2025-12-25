@@ -1,8 +1,12 @@
 import { useAiStore } from "@src/store/useAiStore";
-import type { FlashCard } from "@src/types/flashcard";
+import type { FlashCard, FlashcardsSet } from "@src/types/flashcard";
 import { useEffect, useState } from "react";
 import Spinner from "../common/spinner";
-import { Brain, Sparkles } from "lucide-react";
+import { Brain, Plus, Sparkles, Trash2 } from "lucide-react";
+import { formatRelativeTime } from "@src/utils";
+import FlashcardList from "./FlashcardList";
+import NoFlashcardSets from "./NoFlashcardSets";
+import Modal from "../common/Modal";
 
 type FlashcardsManagerProps = {
   documentId?: string;
@@ -13,21 +17,22 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
 }) => {
   const fetchFlashcards = useAiStore((state) => state.fetchFlashcardsForDoc);
   const generateFlashcard = useAiStore((state) => state.generateFlashcard);
-  const [flascardsSets, setFlascardsSets] = useState<FlashCard[]>([]);
-  const [seelctedSet, setSeelctedSet] = useState<FlashCard[] | null>(null);
+  const [flashcardsSets, setFlashcardsSets] = useState<FlashcardsSet[]>([]);
+  const [seelctedSet, setSeelctedSet] = useState<FlashcardsSet | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [setToDelete, setSetToDelete] = useState<FlashCard[] | null>(null);
+  const [setToDelete, setSetToDelete] = useState<FlashcardsSet | null>(null);
   const [numOfFlashcardToGenerate, setNumOfFlashcardToGenerate] = useState(2);
 
   const handleFetchFlashcards = async () => {
     setLoading(true);
     try {
       const response = await fetchFlashcards(documentId);
-      setFlascardsSets(response);
+      console.log(response);
+      setFlashcardsSets(response);
     } catch (e) {
       console.log(e);
     } finally {
@@ -44,10 +49,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const handleGenerateFlashcards = async () => {
     setGenerating(true);
     try {
-      const response = await generateFlashcard(
-        documentId,
-        numOfFlashcardToGenerate
-      );
+      await generateFlashcard(documentId, numOfFlashcardToGenerate);
       handleFetchFlashcards();
     } catch (e) {
       console.log(e);
@@ -64,7 +66,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
     //TODO
   };
 
-  const handleDeleteRequest = async (e: any, set: FlashCard[]) => {
+  const handleDeleteRequest = async (e: any, set: FlashcardsSet) => {
     e.preventDefault();
     setSetToDelete(set);
     setIsDeleteModalOpen(true);
@@ -73,7 +75,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
     //TODO
   };
 
-  const handleSelectSet = (set: FlashCard[]) => {
+  const handleSelectSet = (set: FlashcardsSet) => {
     setSeelctedSet(set);
   };
 
@@ -90,43 +92,66 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
       );
     }
 
+    if (flashcardsSets.length === 0) {
+      <NoFlashcardSets
+        generating={generating}
+        handleGenerateFlashcards={handleGenerateFlashcards}
+      />;
+    }
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-6">
-        <div className="inline-flex items-center justify-center size-16 rounded-2xl bg-linear-to-br from-emerald-100 to-teal-100 mb-2">
-          <Brain className="size-8 text-emerald-600" strokeWidth={2} />
-        </div>
-        <h3 className="text-xl font-semibold text-slate-900 mb-2">
-          No Flashcard Yet
-        </h3>
-        <p className="text-sm text-slate-500 mb-8 text-center max-w-sm">
-          Generate flashcard from your document to start learning and reinforce
-          your knowledge.
-        </p>
-        <button
-          onClick={handleGenerateFlashcards}
-          className="group inline-flex items-center gap-2 px-6 h-12 bg-linear-to-r from-emerald-500 to-teal-500  hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-          disabled={generating}
-        >
-          {generating ? (
-            <>
-              <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Sparkles className="size-4" strokeWidth={2} />
-              Generate Flashcards
-            </>
-          )}
-        </button>
-      </div>
+      <FlashcardList
+        flashcardsSets={flashcardsSets}
+        handleDeleteRequest={handleDeleteRequest}
+        handleSelectSet={handleSelectSet}
+        handleGenerateFlashcards={handleGenerateFlashcards}
+        generating={generating}
+      />
     );
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-8">
-      {seelctedSet ? renderFlashcardViewer() : renderSetList()}
-    </div>
+    <>
+      <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-8">
+        {seelctedSet ? renderFlashcardViewer() : renderSetList()}
+      </div>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Delete Flashcard Set?"
+      >
+        <div className="space-y-6">
+          <p className="text-sm text-slate-600">
+            Are you sure you want to delete this Flashcard set? <br />
+            this action can not be undone and all card will be permanently
+            removed.
+          </p>
+          <div className="flex items-center justify-end gap-3 pt-2 ">
+            <button
+              className="px-5 h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={deleting}
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              className="px-5 h-11 bg-linear-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-lg shadow-rose-500/25 active:scale-95 disabled:active:scale-100"
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <span className="flex items-center gap-2">
+                  <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Deleting...
+                </span>
+              ) : (
+                "Delete Set"
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 };
 

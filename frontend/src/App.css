@@ -17,8 +17,7 @@
   button {
     cursor: pointer;
     &:disabled {
-      opacity: 0.6;
-      pointer-events: none;
+      @apply opacity-50 cursor-not-allowed;
     }
   }
 }

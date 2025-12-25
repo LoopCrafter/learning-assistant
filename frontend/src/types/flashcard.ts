@@ -8,3 +8,12 @@ export type FlashCard = {
   isStarred: boolean;
   isCompleted: boolean;
 };
+
+export type FlashcardsSet = {
+  _id: string;
+  userId: string;
+  documentId: string | null;
+  cards: FlashCard[];
+  createdAt: string;
+  updatedAt: string;
+};
