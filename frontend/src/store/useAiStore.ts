@@ -10,7 +10,7 @@ type AiStore = {
   explainConcept: (
     documentId: string,
     concept: string
-  ) => Promise<{ explanation: string }>;
+  ) => Promise<{ explaination: string }>;
 };
 
 export const useAiStore = create<AiStore>((set) => ({
