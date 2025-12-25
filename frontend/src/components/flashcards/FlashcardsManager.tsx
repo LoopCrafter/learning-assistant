@@ -1,17 +1,8 @@
 import { useAiStore } from "@src/store/useAiStore";
-import type { FlashCard, FlashcardsSet } from "@src/types/flashcard";
+import type { FlashcardsSet } from "@src/types/flashcard";
 import { useEffect, useState } from "react";
 import Spinner from "../common/spinner";
-import {
-  ArrowLeft,
-  Brain,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
-import { formatRelativeTime } from "@src/utils";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import FlashcardList from "./FlashcardList";
 import NoFlashcardSets from "./NoFlashcardSets";
 import Modal from "../common/Modal";
@@ -28,8 +19,12 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const fetchFlashcards = useAiStore((state) => state.fetchFlashcardsForDoc);
   const generateFlashcard = useAiStore((state) => state.generateFlashcard);
   const deleteFlashcardSet = useAiStore((state) => state.deleteFlashcardSet);
+  const toggleFavorite = useAiStore((state) => state.toggleFavorite);
+
   const [flashcardsSets, setFlashcardsSets] = useState<FlashcardsSet[]>([]);
-  const [selectedSet, setselectedSet] = useState<FlashcardsSet | null>(null);
+  const [selectedSet, setselectedSet] = useState<
+    FlashcardsSet | null | undefined
+  >(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -91,7 +86,28 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
     }
   };
 
-  const handleToggleStar = async (CardId: string) => {};
+  const handleToggleStar = async (cardId: string) => {
+    try {
+      await toggleFavorite(cardId);
+      debugger;
+      const updatedSets = flashcardsSets.map((set) => {
+        if (set._id === selectedSet?._id) {
+          const updatedCard = set.cards.map((card) => {
+            return card._id === cardId
+              ? { ...card, isStarred: !card.isStarred }
+              : card;
+          });
+          return { ...set, cards: updatedCard };
+        }
+        return set;
+      });
+      setFlashcardsSets(updatedSets);
+      setselectedSet(updatedSets.find((set) => set._id === selectedSet?._id));
+      toast.success("flashcard favorite state update successfully");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   const handleDeleteRequest = async (e: any, set: FlashcardsSet) => {
     e.preventDefault();
@@ -108,7 +124,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
       setIsDeleteModalOpen(false);
       handleFetchFlashcards();
     } catch (error: any) {
-      toast.success(error.message);
+      toast.error(error.message);
     } finally {
       setDeleting(false);
     }
@@ -143,7 +159,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
         </div>
 
         {/* Navigation Controlls */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-6 justify-center">
           <button
             onClick={handlePrevCard}
             disabled={(selectedSet?.cards ?? []).length <= 1}
