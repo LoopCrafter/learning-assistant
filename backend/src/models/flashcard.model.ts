@@ -32,7 +32,7 @@ const FlashcardSchema: Schema<IFlashcard> = new Schema(
   { timestamps: true }
 );
 
-FlashcardSchema.index({ userId: 1, documentId: 1 }, { unique: true });
+FlashcardSchema.index({ documentId: 1 }, { unique: true });
 const Flashcard = model<IFlashcard>("Flashcard", FlashcardSchema);
 
 export default Flashcard;

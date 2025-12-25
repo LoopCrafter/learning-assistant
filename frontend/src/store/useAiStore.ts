@@ -84,4 +84,5 @@ export const useAiStore = create<AiStore>((set) => ({
       throw error;
     }
   },
+  // toggleFavorite
 }));

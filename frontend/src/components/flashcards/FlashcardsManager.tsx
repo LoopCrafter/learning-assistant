@@ -2,12 +2,21 @@ import { useAiStore } from "@src/store/useAiStore";
 import type { FlashCard, FlashcardsSet } from "@src/types/flashcard";
 import { useEffect, useState } from "react";
 import Spinner from "../common/spinner";
-import { Brain, Plus, Sparkles, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Brain,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { formatRelativeTime } from "@src/utils";
 import FlashcardList from "./FlashcardList";
 import NoFlashcardSets from "./NoFlashcardSets";
 import Modal from "../common/Modal";
 import { toast } from "react-toastify";
+import Flashcard from "./Flashcard";
 
 type FlashcardsManagerProps = {
   documentId?: string;
@@ -20,7 +29,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const generateFlashcard = useAiStore((state) => state.generateFlashcard);
   const deleteFlashcardSet = useAiStore((state) => state.deleteFlashcardSet);
   const [flashcardsSets, setFlashcardsSets] = useState<FlashcardsSet[]>([]);
-  const [seelctedSet, setSeelctedSet] = useState<FlashcardsSet | null>(null);
+  const [selectedSet, setselectedSet] = useState<FlashcardsSet | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -63,10 +72,26 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   const handleReview = async (index: number) => {
     //TODO
   };
-
-  const handleToggleStar = async (CardId: string) => {
-    //TODO
+  const handleNextCard = () => {
+    if (selectedSet) {
+      handleReview(currentCardIndex);
+      setCurrentCardIndex(
+        (prevIndex) => (prevIndex + 1) % selectedSet.cards.length
+      );
+    }
   };
+
+  const handlePrevCard = () => {
+    if (selectedSet) {
+      handleReview(currentCardIndex);
+      setCurrentCardIndex(
+        (prevIndex) =>
+          (prevIndex - 1 + selectedSet.cards.length) % selectedSet.cards.length
+      );
+    }
+  };
+
+  const handleToggleStar = async (CardId: string) => {};
 
   const handleDeleteRequest = async (e: any, set: FlashcardsSet) => {
     e.preventDefault();
@@ -90,11 +115,67 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   };
 
   const handleSelectSet = (set: FlashcardsSet) => {
-    setSeelctedSet(set);
+    setselectedSet(set);
   };
 
   const renderFlashcardViewer = () => {
-    return "Flashcard Viewer";
+    const currentCard = selectedSet?.cards[currentCardIndex];
+    return (
+      <div className="space-y-8">
+        <button
+          className="group inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors duration-200"
+          onClick={() => setselectedSet(null)}
+        >
+          <ArrowLeft
+            className="size-4 group-hover:-translate-x-1 transition-transform duration-200"
+            strokeWidth={2}
+          />
+          Back to sets
+        </button>
+        {/* Flashcard display */}
+        <div className="flex flex-col items-center space-y-8">
+          <div className="w-full max-w-2xl">
+            <Flashcard
+              flashcard={currentCard}
+              onToggleStar={() => handleToggleStar(currentCard?._id ?? "")}
+            />
+          </div>
+        </div>
+
+        {/* Navigation Controlls */}
+        <div className="flex items-center gap-6">
+          <button
+            onClick={handlePrevCard}
+            disabled={(selectedSet?.cards ?? []).length <= 1}
+            className="group flex items-center gap-2 px-5 h-11 bg-slate-100 hover:bg-slate-200  text-slate-700 font-medium text-sm rounded-xl transition-all duration-200 disabled:hover:bg-slate-100"
+          >
+            <ChevronLeft
+              className="size-4 group-hover:-translate-x-0.5 transition-transform duration-200"
+              strokeWidth={2.5}
+            />
+            Previous
+          </button>
+          <div className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
+            <span className="text-sm font-semibold text-slate-700">
+              {currentCardIndex + 1}
+              <span className="text-slate-400 font-normal">/</span>
+              {(selectedSet?.cards ?? []).length}
+            </span>
+          </div>
+          <button
+            className="group flex items-center gap-2 px-5 h-11 bg-slate-100 hover:bg-slate-200  text-slate-700 font-medium text-sm rounded-xl transition-all duration-200 disabled:hover:bg-slate-100"
+            onClick={handleNextCard}
+            disabled={(selectedSet?.cards ?? []).length <= 1}
+          >
+            Next
+            <ChevronRight
+              className="size-4 group-hover:translate-x-0.5 transition-transform duration-200"
+              strokeWidth={2.5}
+            />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const renderSetList = () => {
@@ -128,7 +209,7 @@ const FlashcardsManager: React.FC<FlashcardsManagerProps> = ({
   return (
     <>
       <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-8">
-        {seelctedSet ? renderFlashcardViewer() : renderSetList()}
+        {selectedSet ? renderFlashcardViewer() : renderSetList()}
       </div>
       <Modal
         isOpen={isDeleteModalOpen}

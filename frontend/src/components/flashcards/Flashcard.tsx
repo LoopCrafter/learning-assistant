@@ -2,7 +2,7 @@ import { useState } from "react";
 
 type FlashcardProps = {
   flashcard: any;
-  onToggleStar: () => void;
+  onToggleStar: () => Promise<void>;
 };
 
 const Flashcard: React.FC<FlashcardProps> = ({ flashcard, onToggleStar }) => {
