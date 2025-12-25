@@ -1,3 +1,4 @@
+import type { FlashCard } from "@src/types/flashcard";
 import { API_Paths } from "@src/utils/apiPath";
 import Api from "@src/utils/axiosInstance";
 import { toast } from "react-toastify";
@@ -11,6 +12,8 @@ type AiStore = {
     documentId: string,
     concept: string
   ) => Promise<{ explaination: string }>;
+  fetchFlashcardsForDoc: (documentId: string) => Promise<FlashCard[]>;
+  generateFlashcard: (documentId: string, count: number) => Promise<void>;
 };
 
 export const useAiStore = create<AiStore>((set) => ({
@@ -29,6 +32,29 @@ export const useAiStore = create<AiStore>((set) => ({
         concept,
       });
       return respose.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message || "Something went wrong");
+      }
+    }
+  },
+  fetchFlashcardsForDoc: async (documentId: string) => {
+    try {
+      const result = await Api(API_Paths.FLASHCARDS.GET_ALL_FLASHCARDS_SETS);
+      return result.data.cards;
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message || "Something went wrong");
+      }
+    }
+  },
+  generateFlashcard: async (documentId: string, count: number) => {
+    try {
+      const result = await Api.post(API_Paths.AI.GENERATE_FLASHCARDS, {
+        documentId,
+        count,
+      });
+      toast.success("Flashcards generated successfully");
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message || "Something went wrong");
