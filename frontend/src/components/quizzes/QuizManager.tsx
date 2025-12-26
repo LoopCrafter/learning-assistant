@@ -7,6 +7,7 @@ import { set } from "zod";
 import Button from "../common/Button";
 import Spinner from "../common/spinner";
 import EmptyState from "../common/EmptyState";
+import QuizCard from "./QuizCard";
 
 type QuizManagerProps = {
   documentId?: string;
@@ -81,7 +82,7 @@ const QuizManager: React.FC<QuizManagerProps> = ({ documentId = "" }) => {
       );
     }
 
-    if (true) {
+    if (quizzes.length === 0) {
       return (
         <EmptyState
           title="No Quizzes yet"
@@ -89,6 +90,13 @@ const QuizManager: React.FC<QuizManagerProps> = ({ documentId = "" }) => {
         />
       );
     }
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {quizzes.map((quiz) => (
+          <QuizCard key={quiz._id} quiz={quiz} onDelete={handleDeleteRequest} />
+        ))}
+      </div>
+    );
   };
 
   return (

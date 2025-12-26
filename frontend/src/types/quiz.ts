@@ -10,6 +10,13 @@ type QuizQuestion = {
 };
 
 export type Quiz = {
+  _id: string;
+  userId: string;
+  documentId: {
+    _id: string;
+    title: string;
+  };
+  title: string;
   questions: QuizQuestion[];
   score: number;
   totalQuestions: number;
