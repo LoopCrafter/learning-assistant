@@ -1,4 +1,5 @@
 import type { FlashcardsSet } from "@src/types/flashcard";
+import type { Quiz } from "@src/types/quiz";
 import { API_Paths } from "@src/utils/apiPath";
 import Api from "@src/utils/axiosInstance";
 import { toast } from "react-toastify";
@@ -17,6 +18,8 @@ type AiStore = {
   deleteFlashcardSet: (id: string) => Promise<void>;
   toggleFavorite: (id: string) => Promise<void>;
   reviewFlashcard: (cardId: string) => Promise<void>;
+  getQuizzes: (documentId: string) => Promise<Quiz[]>;
+  generateQuiz: (documentId: string, numOfQuestions: number) => Promise<Quiz>;
 };
 
 export const useAiStore = create<AiStore>((set) => ({
@@ -99,6 +102,40 @@ export const useAiStore = create<AiStore>((set) => ({
   reviewFlashcard: async (cardId: string) => {
     try {
       await Api.post(API_Paths.FLASHCARDS.REVIEW_FLASHCARD(cardId));
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+
+      toast.error(message);
+      throw error;
+    }
+  },
+  getQuizzes: async (documentId: string) => {
+    try {
+      const result = await Api(
+        API_Paths.QUIZZES.GET_QUIZZES_FOR_DOCUMENT(documentId)
+      );
+      return result.data;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+
+      toast.error(message);
+      throw error;
+    }
+  },
+  generateQuiz: async (documentId: string, numOfQuestions: number) => {
+    try {
+      const result = await Api.post(API_Paths.AI.GENERATE_QUIZ, {
+        documentId,
+        numOfQuestions,
+      });
+      toast.success("Quiz generated successfully");
+      return result.data;
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||

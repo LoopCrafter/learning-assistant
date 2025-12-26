@@ -4,7 +4,7 @@ import Tabs from "@src/components/common/Tabs";
 import AiActions from "@src/components/documents/AiActions.Tab";
 import Chat from "@src/components/documents/Chat.Tab";
 import Content from "@src/components/documents/Content.Tab";
-import Quizzes from "@src/components/documents/Quizzes.tab";
+import QuizManager from "@src/components/quizzes/QuizManager";
 import FlashcardsManager from "@src/components/flashcards/FlashcardsManager";
 import { useDocumentStore } from "@src/store/useDocumentsStore";
 import type { Document } from "@src/types/document";
@@ -75,7 +75,7 @@ const DocumentDetailPage = () => {
     {
       name: "Quizzes",
       label: "Quizzes",
-      content: <Quizzes />,
+      content: <QuizManager documentId={id} />,
     },
   ];
 
