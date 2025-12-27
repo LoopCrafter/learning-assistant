@@ -13,7 +13,9 @@ const getQuizzes = async (req: Request, res: Response, next: NextFunction) => {
     const quizzes = await Quiz.find({
       documentId,
       userId: req.user!._id,
-    }).populate("documentId", "title fieldName");
+    })
+      .populate("documentId", "title fieldName")
+      .sort({ createdAt: -1 });
 
     res.json({
       success: true,

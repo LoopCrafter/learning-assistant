@@ -30,7 +30,8 @@ const Button = ({
     secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200",
     outline:
       "bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
-    danger: "",
+    danger:
+      "bg-red-600 text-white hover:bg-red-500 active:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50 disabled:pointer-events-none",
   };
   const sizeStyle = {
     sm: "h-9 px-4 text-xs",

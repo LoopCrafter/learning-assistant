@@ -35,7 +35,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, onDelete }) => {
             {quiz.title ||
               "quizz -" + new Date(quiz.createdAt).toLocaleDateString()}
           </h3>
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+          <p className="text-xs font-medium text-slate-500 tracking-wide">
             {formatRelativeTime(quiz.createdAt)}
           </p>
         </div>
@@ -44,7 +44,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, onDelete }) => {
           <div className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg">
             <span className="text-sm font-semibold text-slate-700">
               {quiz.questions?.length ?? 0}
-              {quiz.questions?.length === 1 ? "Question" : "Questions"}
+              {quiz.questions?.length === 1 ? " Question" : " Questions"}
             </span>
           </div>
         </div>

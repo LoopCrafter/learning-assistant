@@ -20,6 +20,7 @@ type AiStore = {
   reviewFlashcard: (cardId: string) => Promise<void>;
   getQuizzes: (documentId: string) => Promise<Quiz[]>;
   generateQuiz: (documentId: string, numOfQuestions: number) => Promise<Quiz>;
+  deleteQuiz: (id: string) => Promise<void>;
 };
 
 export const useAiStore = create<AiStore>((set) => ({
@@ -136,6 +137,19 @@ export const useAiStore = create<AiStore>((set) => ({
       });
       toast.success("Quiz generated successfully");
       return result.data;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+
+      toast.error(message);
+      throw error;
+    }
+  },
+  deleteQuiz: async (id: string) => {
+    try {
+      await Api.delete(API_Paths.QUIZZES.DELETE_QUIZ(id));
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
