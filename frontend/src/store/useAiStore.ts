@@ -21,6 +21,7 @@ type AiStore = {
   getQuizzes: (documentId: string) => Promise<Quiz[]>;
   generateQuiz: (documentId: string, numOfQuestions: number) => Promise<Quiz>;
   deleteQuiz: (id: string) => Promise<void>;
+  getQuizById: (id: string) => Promise<Quiz>;
 };
 
 export const useAiStore = create<AiStore>((set) => ({
@@ -182,5 +183,11 @@ export const useAiStore = create<AiStore>((set) => ({
       toast.error(message);
       throw error;
     }
+  },
+  getQuizById: async (id: string) => {
+    try {
+      const result = await Api(API_Paths.QUIZZES.GET_QUIZ_BY_ID(id));
+      return result.data;
+    } catch (error: any) {}
   },
 }));

@@ -3,7 +3,6 @@ import type { Quiz } from "@src/types/quiz";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { set } from "zod";
 import Button from "../common/Button";
 import Spinner from "../common/spinner";
 import EmptyState from "../common/EmptyState";

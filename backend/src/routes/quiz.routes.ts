@@ -14,7 +14,7 @@ const router = Router();
 router.use(protectRoute);
 
 router.get("/:documentId", getQuizzes);
-router.post("/quiz/:id", getQuizById);
+router.get("/quiz/:id", getQuizById);
 router.post(
   "/:id/submit",
   [
