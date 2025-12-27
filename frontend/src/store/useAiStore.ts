@@ -30,7 +30,15 @@ export const useAiStore = create<AiStore>((set) => ({
         documentId,
       });
       return response.data;
-    } catch (error) {}
+    } catch (error: any) {
+      const errors = error?.errors;
+      const message =
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
+      toast.error(message);
+      throw error;
+    }
   },
   explainConcept: async (documentId: string, concept: string) => {
     try {
@@ -39,10 +47,14 @@ export const useAiStore = create<AiStore>((set) => ({
         concept,
       });
       return respose.data;
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message || "Something went wrong");
-      }
+    } catch (error: any) {
+      const errors = error?.errors;
+      const message =
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
+      toast.error(message);
+      throw error;
     }
   },
   fetchFlashcardsForDoc: async (documentId: string) => {
@@ -51,24 +63,29 @@ export const useAiStore = create<AiStore>((set) => ({
         API_Paths.FLASHCARDS.GET_FLASHCARDS_FOR_DOCUMENT(documentId)
       );
       return result.data;
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message || "Something went wrong");
-      }
+    } catch (error: any) {
+      const errors = error?.errors;
+      const message =
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
+      toast.error(message);
+      throw error;
     }
   },
   generateFlashcard: async (documentId: string, count: number) => {
     try {
-      const result = await Api.post(API_Paths.AI.GENERATE_FLASHCARDS, {
+      await Api.post(API_Paths.AI.GENERATE_FLASHCARDS, {
         documentId,
         count,
       });
       toast.success("Flashcards generated successfully");
     } catch (error: any) {
+      const errors = error?.errors;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
 
       toast.error(message);
       throw error;
@@ -78,10 +95,11 @@ export const useAiStore = create<AiStore>((set) => ({
     try {
       await Api.delete(API_Paths.FLASHCARDS.DELETE_FLASHCARD_SET(id));
     } catch (error: any) {
+      const errors = error?.errors;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
 
       toast.error(message);
       throw error;
@@ -91,10 +109,11 @@ export const useAiStore = create<AiStore>((set) => ({
     try {
       await Api.put(API_Paths.FLASHCARDS.TOGGLE_STAR(id));
     } catch (error: any) {
+      const errors = error?.errors;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
 
       toast.error(message);
       throw error;
@@ -104,10 +123,11 @@ export const useAiStore = create<AiStore>((set) => ({
     try {
       await Api.post(API_Paths.FLASHCARDS.REVIEW_FLASHCARD(cardId));
     } catch (error: any) {
+      const errors = error?.errors;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
 
       toast.error(message);
       throw error;
@@ -120,10 +140,11 @@ export const useAiStore = create<AiStore>((set) => ({
       );
       return result.data;
     } catch (error: any) {
+      const errors = error?.errors;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
 
       toast.error(message);
       throw error;
@@ -138,12 +159,13 @@ export const useAiStore = create<AiStore>((set) => ({
       toast.success("Quiz generated successfully");
       return result.data;
     } catch (error: any) {
+      const errors = error?.errors;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
 
-      toast.error(message);
+      toast.error(message, errors);
       throw error;
     }
   },
@@ -151,10 +173,11 @@ export const useAiStore = create<AiStore>((set) => ({
     try {
       await Api.delete(API_Paths.QUIZZES.DELETE_QUIZ(id));
     } catch (error: any) {
+      const errors = error?.errors;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+        errors && typeof errors === "object"
+          ? Object.values(errors)[0]
+          : error?.message || "Something went wrong";
 
       toast.error(message);
       throw error;

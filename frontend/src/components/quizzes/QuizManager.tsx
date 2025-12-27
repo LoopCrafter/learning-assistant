@@ -74,6 +74,7 @@ const QuizManager: React.FC<QuizManagerProps> = ({ documentId = "" }) => {
       await deleteQuiz(selectedQuiz._id);
       setQuizzes(quizzes.filter((quiz) => quiz._id !== selectedQuiz?._id));
       setIsDeleteModalOpen(false);
+      toast.success(`"${selectedQuiz.title}" has been deleted.`);
       setSelectedQuiz(null);
     } catch (error) {
     } finally {

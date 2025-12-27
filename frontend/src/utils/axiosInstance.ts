@@ -27,22 +27,23 @@ Api.interceptors.request.use(
 
 // response interceptor
 Api.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
+  (response) => response.data,
   (error) => {
     if (error.response) {
-      if (error.response.status === 401) {
+      const { status, data } = error.response;
+
+      if (status === 401) {
         window.location.href = "/login";
-      } else if (error.response.status === 500) {
-        console.log("Internal Server Error");
-      } else if (error.response.status === 404) {
-        console.log("Not Found");
       }
+
+      return Promise.reject({
+        status,
+        ...data,
+      });
     }
+
     return Promise.reject({
-      status: error.response.status,
-      message: error.response.data.message,
+      message: error.message || "Network Error",
     });
   }
 );
